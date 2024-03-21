@@ -7,7 +7,6 @@ defmodule Fibril.Helpers do
     functions.
   """
   def preload({:ok, entity}, preloads) when is_nil(preloads) do
-    IO.puts("Preloads is nil!!!!!!!!!!!!!!!!!!!!")
     {:ok, entity}
   end
 

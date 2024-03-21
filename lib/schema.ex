@@ -13,28 +13,41 @@ defmodule Fibril.Schema do
   end
 
   def get_metadata_for_field(field, schema) when is_atom(field) do
-    field_metadata = %{
-      name: field,
-      ecto_type: get_metadata(:type, field, schema),
-      html_type: get_metadata(:type, field, schema) |> to_html_type()
-    }
+    if field in schema.__schema__(:fields) do
+      field_metadata = %{
+        name: field,
+        ecto_type: get_metadata(:type, field, schema),
+        html_type: get_metadata(:type, field, schema) |> to_html_type()
+      }
 
-    if field_metadata.ecto_type == :id do
-      Map.put(field_metadata, :association, get_association(field, schema))
+      if field_metadata.ecto_type == :id do
+        Map.put(field_metadata, :association, get_association(field, schema))
+      else
+        field_metadata
+      end
     else
-      field_metadata
+      raise """
+      Field Error
+
+      #{field} is not in schema, #{schema}.
+
+      Valid fields are #{inspect(schema.__schema__(:fields))}.
+      """
     end
   end
 
   def get_metadata(type, field, schema) do
-    apply(schema, :__schema__, [type, field])
+    schema.__schema__(type, field)
+    # apply(schema, :__schema__, [type, field])
   end
 
   def get_association(field, schema) do
     associations =
-      apply(schema, :__schema__, [:associations])
+      schema.__schema__(:assocations)
+      # apply(schema, :__schema__, [:associations])
       |> Enum.map(fn association ->
-        apply(schema, :__schema__, [:association, association])
+        schema.__schema__(:association, association)
+        # apply(schema, :__schema__, [:association, association])
       end)
 
     Enum.find(associations, fn association -> association.owner_key == field end)
@@ -59,7 +72,8 @@ defmodule Fibril.Schema do
   end
 
   def get_struct(module) do
-    apply(module, :__struct__, [])
+    module.__struct__()
+    # apply(module, :__struct__, [])
   end
 
   def get_changeset(module, changeset, struct, attrs) when changeset == nil do
