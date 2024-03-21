@@ -97,11 +97,6 @@ defmodule FibrilWeb do
   end
 
   def verified_routes do
-    IO.puts("About to define verified routes.........")
-
-    endpoint = Application.get_env(:fibril, :endpoint)
-    dbg(endpoint)
-
     quote do
       use Phoenix.VerifiedRoutes,
         endpoint: Application.compile_env!(:fibril, :endpoint),

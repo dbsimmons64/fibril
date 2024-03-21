@@ -7,15 +7,10 @@ defmodule Fibril.Config do
 
   defmacro __before_compile__(_env) do
     repo = Application.get_env(:fibril, :repo)
-    layout = Application.get_env(:fibril, :layout)
 
     quote do
       def repo() do
         unquote(repo)
-      end
-
-      def layout() do
-        unquote(layout)
       end
     end
   end

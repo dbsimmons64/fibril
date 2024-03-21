@@ -16,8 +16,7 @@ defmodule FibrilWeb.FibrilLive.Index do
      |> assign(:configuration, configuration)
      |> assign(resource: resource)
      |> assign(:fields, table.fields)
-     |> stream(:records, Resource.list_records(resource.module, table[:preloads])),
-     layout: Schema.layout()}
+     |> stream(:records, Resource.list_records(resource.module, table[:preloads]))}
   end
 
   @impl true
@@ -65,11 +64,8 @@ defmodule FibrilWeb.FibrilLive.Index do
   end
 
   def fetch_data(record, fields) when is_list(fields) do
-    dbg(record)
-    dbg(fields)
-
     keys = Enum.map(fields, fn field -> Access.key(field, %{}) end)
-    get_in(record, keys) |> dbg()
+    get_in(record, keys)
   end
 
   def fetch_data(record, field) do

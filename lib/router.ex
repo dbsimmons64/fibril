@@ -20,8 +20,6 @@ defmodule FibrilWeb.Router do
   defmacro admin_resource(path, resource_mod) do
     import Phoenix.LiveView.Router, only: [live: 4]
 
-    IO.puts("About to define Admin Resource!!!!!!!!!!!!")
-
     quote bind_quoted: [path: path, resource_mod: resource_mod] do
       live("/admin/:resource", FibrilWeb.FibrilLive.Index, :index)
       live("/admin/:resource/new", FibrilWeb.FibrilLive.Index, :new)

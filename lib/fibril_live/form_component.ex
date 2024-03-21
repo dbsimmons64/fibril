@@ -20,6 +20,7 @@ defmodule FibrilWeb.FibrilLive.FormComponent do
         phx-change="validate"
         phx-submit="save"
       >
+
         <%= for field <- @fields do %>
           <.fibril_input
             field={@form[field.name]}
@@ -39,36 +40,24 @@ defmodule FibrilWeb.FibrilLive.FormComponent do
   @impl true
   def update(%{record: record} = assigns, socket) do
     resource = apply(assigns.configuration, :resource, [])
-    table = apply(assigns.configuration, :table, [])
+    form = apply(assigns.configuration, :form, [])
 
-    fields = Schema.get_metadata_for_fields(table.fields, resource.module)
-    changeset = Schema.get_changeset(resource.module, table[:changeset], record, %{})
+    fields = Schema.get_metadata_for_fields(form.fields, resource.module)
+    changeset = Schema.get_changeset(resource.module, form[:changeset], record, %{})
 
     {:ok,
      socket
      |> assign(assigns)
      |> assign(:fields, fields)
      |> assign(:form, to_form(changeset, as: "fibril"))
-     |> assign(:opts, table)}
+     |> assign(:opts, form)}
   end
 
   @impl true
   def handle_event("validate", %{"fibril" => fibril_params}, socket) do
-    # resource = apply(socket.assigns.configuration, :resource, [])
-    # table = apply(socket.assigns.configuration, :table, [])
-
-    # changeset =
-    #   Schema.get_changeset(
-    #     resource.module,
-    #     table[:changeset],
-    #     Schema.get_struct(resource.module),
-    #     fibril_params
-    #   )
-
     changeset =
       Resource.get_changeset(socket.assigns.configuration, fibril_params)
       |> Map.put(:action, :validate)
-      |> dbg()
 
     {:noreply, assign(socket, :form, to_form(changeset, as: "fibril"))}
   end
@@ -104,7 +93,6 @@ defmodule FibrilWeb.FibrilLive.FormComponent do
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        dbg(changeset)
         {:noreply, assign_form(socket, changeset)}
     end
   end
