@@ -1,0 +1,43 @@
+<.header>
+  Listing Pets
+  <:actions>
+    <.link patch={~p"/admin/#{@resource.plural}/new"}>
+      <.button>New <%= @resource.name %></.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="pets"
+  rows={@streams.records}
+  row_click={fn {_id, pet} -> JS.navigate(~p"/admin/#{@resource.plural}/#{pet}/edit") end}
+>
+  <:col :let={{_id, record}} :for={field <- @fields} label="Name">
+    <%= fetch_data(record, field) %>
+  </:col>
+  <:action :let={{id, record}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: record.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal
+  :if={@live_action in [:new, :edit]}
+  id={"#{@resource.name}-modal"}
+  show
+  on_cancel={JS.patch(~p"/admin/#{@resource.plural}")}
+>
+  <.live_component
+    module={FibrilWeb.FibrilLive.FormComponent}
+    configuration={@configuration}
+    id={@record.id || :new}
+    title={@page_title}
+    action={@live_action}
+    record={@record}
+    patch={~p"/admin/#{@resource.plural}"}
+  />
+</.modal>
