@@ -13,7 +13,9 @@ defmodule FibrilTest do
 
 
 
-     live(conn, ~p"/admin/pets")
+    {:ok, _view, html} = live(conn, ~p"/admin/pets")
+    assert html =~ "Foo"
+
 
   end
 end
