@@ -6,8 +6,8 @@ defmodule FibrilWeb.FibrilLive.Index do
 
   @impl true
   def mount(%{"resource" => resource}, _session, socket) do
-    configuration = Module.concat(["FibrilWeb.Fibril.Resourcces", String.capitalize(resource)])
 
+    configuration = Module.concat(["FibrilWeb.Fibril.Resourcces", String.capitalize(resource)])
     resource = apply(configuration, :resource, [])
     table = apply(configuration, :table, [])
 

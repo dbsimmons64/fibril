@@ -99,7 +99,7 @@ defmodule FibrilWeb do
   def verified_routes do
     quote do
       use Phoenix.VerifiedRoutes,
-        endpoint: Application.compile_env!(:fibril, :endpoint),
+        endpoint: Application.compile_env(:fibril, :endpoint, Fibril.Endpoint),
         router: FibrilWeb.Router,
         statics: FibrilWeb.static_paths()
     end
