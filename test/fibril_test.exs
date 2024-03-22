@@ -13,8 +13,7 @@ defmodule FibrilTest do
 
 
 
-
-    foo = live(conn, ~p"/admin/pets")
+     live(conn, ~p"/admin/pets")
 
   end
 end

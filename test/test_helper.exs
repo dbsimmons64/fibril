@@ -40,37 +40,21 @@ defmodule Fibril.ErrorView do
 end
 
 defmodule FibrilTest.Router do
-  use Phoenix.Router
 
-  import FibrilWeb.Router
+import FibrilWeb.Router
 
   use FibrilWeb, :router
+
 
   pipeline :browser do
     plug(:fetch_session)
   end
 
-  pipeline :admin do
-    plug(:accepts, ["html"])
-    plug(:fetch_session)
-    plug(:fetch_live_flash)
-    plug(:put_root_layout, html: {FibrilWeb.Layouts, :root})
-    plug(:protect_from_forgery)
-    plug(:put_secure_browser_headers)
-  end
   scope "/" do
     pipe_through(:browser)
 
     admin()
   end
-  scope "/" do
-    pipe_through(:admin)
-    live("/admin/:resource", FibrilWeb.FibrilLive.Index, :index)
-    live("/admin/:resource/new", FibrilWeb.FibrilLive.Index, :new)
-    live("/admin/:resource/:id/edit", FibrilWeb.FibrilLive.Index, :edit)
-  end
-
-
 
 
 end
@@ -87,13 +71,13 @@ defmodule Fibril.Endpoint do
   plug(FibrilTest.Router)
 end
 
-defmodule FibrilTest.StubSession do
-  @behaviour Fibril.Session.Store
+# defmodule FibrilTest.StubSession do
+#   @behaviour Fibril.Session.Store
 
-  def init!(_), do: "fake"
-  # def load!(_), do: %Fibril.Session{}
-  def persist!(_), do: :ok
-end
+#   def init!(_), do: "fake"
+#   # def load!(_), do: %Fibril.Session{}
+#   def persist!(_), do: :ok
+# end
 
 # Mox.defmock(FibrilTest.MockSession,
 #   for: Fibril.Session.Store,
