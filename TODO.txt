@@ -1,1 +1,8 @@
-1. Do we really need to specify layout - should we just use what is in the library? - Done
+1. [DONE] Do we really need to specify layout - should we just use what is in the library?
+2. [DONE] Getting data for a field (in the index view) needs to cater for 4 scenarios:
+    1. A simple atom e.g. :name, :date_of_birth
+    2. A list [:owner, :name] generally used for associations
+    3. A map with a key of name: the value of which is an atom
+    4. A map with a key of name: the value of which is a list
+
+3. [TODO] Allow prefix for resource configuration to be changed via a config option.

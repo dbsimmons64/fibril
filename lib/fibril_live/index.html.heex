@@ -13,8 +13,8 @@
   rows={@streams.records}
   row_click={fn {_id, pet} -> JS.navigate(~p"/admin/#{@resource.plural}/#{pet}/edit") end}
 >
-  <:col :let={{_id, record}} :for={field <- @fields} label="Name">
-    <%= fetch_data(record, field) %>
+  <:col :let={{_id, record}} :for={field <- @fields} label={set_label(field)}>
+    <%= Resource.fetch_data(record, field) %>
   </:col>
   <:action :let={{id, record}}>
     <.link

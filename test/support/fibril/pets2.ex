@@ -1,4 +1,4 @@
-defmodule Fibril.Resource.Pets do
+defmodule Fibril.Resource.Pets2 do
   import Ecto.Query, warn: false
 
   def resource do
@@ -7,7 +7,7 @@ defmodule Fibril.Resource.Pets do
 
   def table() do
     %{
-      fields: [:name, :date_of_birth]
+      fields: [:date_of_birth]
     }
   end
 

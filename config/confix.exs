@@ -32,7 +32,7 @@ config :fibril, VetWeb.Endpoint,
 config :fibril, fibril.Mailer, adapter: Swoosh.Adapters.Local
 
 # Configure esbuild (the version is required)
-config :fibril, repo: Fibril.Repo, endpoint: Fibril.Endpoint, layout: {FibrilWeb.Layouts, :app}
+config :fibril, repo: Fibril.Repo, endpoint: Fibril.Endpoint
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

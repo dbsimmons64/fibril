@@ -13,6 +13,28 @@ defmodule Fibril.Resource do
     |> Schema.repo().all()
   end
 
+  @doc """
+  Get the value of the given field from the provided record.
+
+  The field itself can be based on:
+    1. A simple atom e.g. :name, :date_of_birth
+    2. A list [:owner, :name] generally used for associations
+    3  A map with a key of name: the value of which is an atom
+    4. A map with a key of name: the value of which is a list
+  """
+  def fetch_data(record, field) when is_list(field) do
+    keys = Enum.map(field, fn f -> Access.key(f, %{}) end)
+    get_in(record, keys)
+  end
+
+  def fetch_data(record, field) when is_map(field) do
+    fetch_data(record, field.name)
+  end
+
+  def fetch_data(record, field) do
+    Map.get(record, field)
+  end
+
   def get_changeset(configuration, params) do
     resource = apply(configuration, :resource, [])
     table = apply(configuration, :table, [])

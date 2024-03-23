@@ -6,8 +6,7 @@ defmodule FibrilWeb.FibrilLive.Index do
 
   @impl true
   def mount(%{"resource" => resource}, _session, socket) do
-
-    configuration = Module.concat(["FibrilWeb.Fibril.Resourcces", String.capitalize(resource)])
+    configuration = Module.concat([Schema.module_prefix(), String.capitalize(resource)])
     resource = apply(configuration, :resource, [])
     table = apply(configuration, :table, [])
 
@@ -61,14 +60,5 @@ defmodule FibrilWeb.FibrilLive.Index do
     {:ok, _} = Schema.repo().delete(record)
 
     {:noreply, stream_delete(socket, :records, record)}
-  end
-
-  def fetch_data(record, fields) when is_list(fields) do
-    keys = Enum.map(fields, fn field -> Access.key(field, %{}) end)
-    get_in(record, keys)
-  end
-
-  def fetch_data(record, field) do
-    Map.get(record, field)
   end
 end

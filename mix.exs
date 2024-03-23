@@ -8,7 +8,16 @@ defmodule Fibril.MixProject do
       elixir: "~> 1.16",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
-      deps: deps()
+      deps: deps(),
+
+      # Docs
+      name: "Fibril Admin Generator",
+      source_url: "https://github.com/USER/PROJECT",
+      homepage_url: "http://YOUR_PROJECT_HOMEPAGE",
+      docs: [
+        extras: extras(),
+        groups_for_extras: groups_for_extras()
+      ]
     ]
   end
 
@@ -34,8 +43,25 @@ defmodule Fibril.MixProject do
       {:gettext, "~> 0.20"},
       {:postgrex, ">= 0.0.0"},
       {:jason, "~> 1.2"},
-      {:floki, ">= 0.30.0", only: :test}
+      {:floki, ">= 0.30.0", only: :test},
+      {:ex_doc, "~> 0.31", only: :dev, runtime: false}
+    ]
+  end
 
+  defp extras() do
+    [
+      "guides/Introduction.md",
+      "guides/tutorial/Introduction.md",
+      "guides/tutorial/Initial Configuration.md",
+      "guides/tutorial/Configuring Fibril.md",
+      "guides/tutorial/Add a resource to Fibril.md"
+    ]
+  end
+
+  defp groups_for_extras() do
+    [
+      Guides: ~r/guides\/[^\/]+\.md/,
+      Tutorial: ~r/tutorial\/[^\/]+\.md/
     ]
   end
 end
