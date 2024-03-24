@@ -6,3 +6,5 @@
     4. A map with a key of name: the value of which is a list
 
 3. [TODO] Allow prefix for resource configuration to be changed via a config option.
+4. [TODO] Allow specification at application or resource level using layout: {foo, :blah} - maybe call a help function to 
+return it.
