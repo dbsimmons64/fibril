@@ -8,6 +8,7 @@ defmodule Fibril.Config do
   defmacro __before_compile__(_env) do
     repo = Application.get_env(:fibril, :repo, Fibril.Repo)
     module_prefix = Application.get_env(:fibril, :module_prefix, "Fibril.Resource")
+    url_prefix = Application.get_env(:fibril, :url_prefix, "/admin")
 
     quote do
       def repo() do
@@ -16,6 +17,10 @@ defmodule Fibril.Config do
 
       def module_prefix() do
         unquote(module_prefix)
+      end
+
+      def url_prefix do
+        unquote(url_prefix)
       end
     end
   end

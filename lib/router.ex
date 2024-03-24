@@ -10,20 +10,18 @@ defmodule FibrilWeb.Router do
     plug(:put_secure_browser_headers)
   end
 
-  # scope "/" do
-  #   pipe_through(:admin)
-  #   live("/admin/:resource", FibrilWeb.FibrilLive.Index, :index)
-  #   live("/admin/:resource/new", FibrilWeb.FibrilLive.Index, :new)
-  #   live("/admin/:resource/:id/edit", FibrilWeb.FibrilLive.Index, :edit)
-  # end
-
-  defmacro admin() do
+  defmacro fibril_admin(pipe) do
     import Phoenix.LiveView.Router, only: [live: 4]
 
+    url_prefix = Application.get_env(:fibril, :url_prefix, "/admin")
+
     quote do
-      live("/admin/:resource", FibrilWeb.FibrilLive.Index, :index)
-      live("/admin/:resource/new", FibrilWeb.FibrilLive.Index, :new)
-      live("/admin/:resource/:id/edit", FibrilWeb.FibrilLive.Index, :edit)
+      scope unquote(url_prefix) do
+        pipe_through(unquote(pipe))
+        live("/:resource", FibrilWeb.FibrilLive.Index, :index)
+        live("/:resource/new", FibrilWeb.FibrilLive.Index, :new)
+        live("/:resource/:id/edit", FibrilWeb.FibrilLive.Index, :edit)
+      end
     end
   end
 end

@@ -26,11 +26,7 @@ defmodule FibrilTest.Router do
     plug(:fetch_session)
   end
 
-  scope "/" do
-    pipe_through(:browser)
-
-    admin()
-  end
+  fibril_admin(:browser)
 end
 
 defmodule Fibril.Endpoint do

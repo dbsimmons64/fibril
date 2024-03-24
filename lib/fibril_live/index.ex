@@ -13,6 +13,7 @@ defmodule FibrilWeb.FibrilLive.Index do
     {:ok,
      socket
      |> assign(:configuration, configuration)
+     |> assign(:url_prefix, Schema.url_prefix())
      |> assign(resource: resource)
      |> assign(:fields, table.fields)
      |> stream(:records, Resource.list_records(resource.module, table[:preloads]))}
