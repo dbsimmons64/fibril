@@ -8,3 +8,8 @@
 3. [TODO] Allow prefix for resource configuration to be changed via a config option.
 4. [TODO] Allow specification at application or resource level using layout: {foo, :blah} - maybe call a help function to 
 return it.
+5. [DONE] Can we remove verified routes?
+6. [DONE] Allow configuration of url to access resources (but default to /admin)
+7. [TODO] Review use of resource name and plural to assure we are using them correctly (especially in urls)
+8. [TODO] Change handling of numbers in fibril_input
+9. [TODO] Automatically generate preloads from fields data.

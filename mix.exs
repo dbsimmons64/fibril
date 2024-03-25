@@ -54,7 +54,8 @@ defmodule Fibril.MixProject do
       "guides/tutorial/Introduction.md",
       "guides/tutorial/Initial Configuration.md",
       "guides/tutorial/Configuring Fibril.md",
-      "guides/tutorial/Add a resource to Fibril.md"
+      "guides/tutorial/Add a resource to Fibril.md",
+      "guides/tutorial/Addings Pets.md"
     ]
   end
 

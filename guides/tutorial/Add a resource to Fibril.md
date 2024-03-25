@@ -1,4 +1,4 @@
-## Introduction to Forms
+## Adding Owners 
 
 Lets add a form to enable the creation of an `owner`. To do so we must create a module `VetWeb.Fibril.Resource.Owner`. The simplest version of this is:
 
@@ -39,3 +39,13 @@ The `table` function defines how we display a list of the resources is displayed
 ### A note about the module name
 
 Fibril looks for a specific module format when reading options for a resource. By default it looks for `FibrilWeb.Fibril.Resource` + resource name. The prefix can be changed via a config option.
+
+## Take a Look
+
+Start the Phoenix server:
+
+```
+mix phx.server
+```
+
+Pop over to [localhost:admin/owners](http://localhost:4000/admin/owners) and marvel at the results :-).

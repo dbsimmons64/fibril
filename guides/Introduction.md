@@ -1,4 +1,4 @@
-Fibril is a library that was heavily inspired by its namesake in the PHP world. 
+Fibril is a library that was heavily inspired by Filament in the PHP world. 
 
 This section is basicallly to note down all my ideas so I don't forget them.
 

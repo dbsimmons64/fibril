@@ -10,6 +10,12 @@ defmodule Fibril.FibrilComponents do
     """
   end
 
+  def fibril_input(%{type: :integer} = assigns) do
+    ~H"""
+    <.input field={@field} type="text" label={@label} />
+    """
+  end
+
   def fibril_input(%{type: :association} = assigns) do
     ~H"""
     <.input field={@field} type="select" options={fetch_options(assigns)} label={@label} />
@@ -67,7 +73,7 @@ defmodule Fibril.FibrilComponents do
       if assigns.fibril[:queryable] do
         assigns.fibril.queryable.()
       else
-        assigns.fibril.assocation.queryable
+        assigns.fibril.association.queryable
       end
 
     query

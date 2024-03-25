@@ -7,8 +7,9 @@ defmodule FibrilWeb.FibrilLive.Index do
   @impl true
   def mount(%{"resource" => resource}, _session, socket) do
     configuration = Module.concat([Schema.module_prefix(), String.capitalize(resource)])
-    resource = apply(configuration, :resource, [])
-    table = apply(configuration, :table, [])
+    resource = configuration.resource
+    table = configuration.table
+    preloads = Schema.create_preloads(table.fields, table[:preloads])
 
     {:ok,
      socket
@@ -16,7 +17,7 @@ defmodule FibrilWeb.FibrilLive.Index do
      |> assign(:url_prefix, Schema.url_prefix())
      |> assign(resource: resource)
      |> assign(:fields, table.fields)
-     |> stream(:records, Resource.list_records(resource.module, table[:preloads]))}
+     |> stream(:records, Resource.list_records(resource.module, preloads))}
   end
 
   @impl true
