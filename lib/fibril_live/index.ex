@@ -9,7 +9,7 @@ defmodule FibrilWeb.FibrilLive.Index do
     configuration = Module.concat([Schema.module_prefix(), String.capitalize(resource)])
     resource = configuration.resource
     table = configuration.table
-    preloads = Schema.create_preloads(table.fields, table[:preloads])
+    preloads = Schema.create_preloads(table.fields)
 
     {:ok,
      socket
@@ -17,10 +17,12 @@ defmodule FibrilWeb.FibrilLive.Index do
      |> assign(:url_prefix, Schema.url_prefix())
      |> assign(resource: resource)
      |> assign(:fields, table.fields)
+     |> assign(:preloads, preloads)
      |> stream(:records, Resource.list_records(resource.module, preloads))}
   end
 
   @impl true
+
   def handle_params(params, _url, socket) do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
@@ -44,9 +46,12 @@ defmodule FibrilWeb.FibrilLive.Index do
   end
 
   defp apply_action(socket, :index, _params) do
+    resource = socket.assigns.configuration.resource
+
     socket
     |> assign(:page_title, "Listing #{socket.assigns.resource.plural}")
     |> assign(:pet, nil)
+    |> stream(:records, Resource.list_records(resource.module, socket.assigns.preloads))
   end
 
   @impl true

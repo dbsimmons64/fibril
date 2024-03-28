@@ -1,3 +1,6 @@
+<div 
+  :if={@live_action in [:index]}
+>
 <.header>
   Listing Pets
 
@@ -25,14 +28,11 @@
     </.link>
   </:action>
 </.table>
+</div>
 
-<.modal
-  :if={@live_action in [:new, :edit]}
-  id={"#{@resource.name}-modal"}
-  show
-  on_cancel={JS.patch("#{@url_prefix}/#{@resource.plural}")}
->
+
   <.live_component
+  :if={@live_action in [:new, :edit]}
     module={FibrilWeb.FibrilLive.FormComponent}
     configuration={@configuration}
     id={@record.id || :new}
@@ -41,4 +41,6 @@
     record={@record}
     patch={"#{@url_prefix}/#{@resource.plural}"}
   />
-</.modal>
+
+<div class="bg-red-500">Hello</div>
+<div class="bg-blue-500">Goodbye</div>

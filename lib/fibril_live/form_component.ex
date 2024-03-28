@@ -31,6 +31,9 @@ defmodule FibrilWeb.FibrilLive.FormComponent do
         <% end %>
         <:actions>
           <.button phx-disable-with="Saving...">Save Pet</.button>
+          <.link patch={"#{@url_prefix}/#{@resource.plural}/new"}>
+
+    </.link>
         </:actions>
       </.simple_form>
     </div>
@@ -49,6 +52,8 @@ defmodule FibrilWeb.FibrilLive.FormComponent do
      socket
      |> assign(assigns)
      |> assign(:fields, fields)
+     |> assign(:url_prefix, Schema.url_prefix())
+     |> assign(resource: resource)
      |> assign(:form, to_form(changeset, as: "fibril"))
      |> assign(:opts, form)}
   end

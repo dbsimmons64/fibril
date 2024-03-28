@@ -8,9 +8,7 @@ defmodule Fibril.Resource do
   end
 
   def list_records(struct, preloads) do
-    struct
-    |> Ecto.Query.preload(^preloads)
-    |> Schema.repo().all()
+    struct |> Ecto.Query.preload(^preloads) |> Schema.repo().all()
   end
 
   @doc """

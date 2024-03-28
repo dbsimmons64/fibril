@@ -9,6 +9,7 @@ defmodule Fibril.MixProject do
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
+      aliases: aliases(),
 
       # Docs
       name: "Fibril Admin Generator",
@@ -44,7 +45,16 @@ defmodule Fibril.MixProject do
       {:postgrex, ">= 0.0.0"},
       {:jason, "~> 1.2"},
       {:floki, ">= 0.30.0", only: :test},
-      {:ex_doc, "~> 0.31", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.31", only: :dev, runtime: false},
+      {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
+      {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
+      {:heroicons,
+       github: "tailwindlabs/heroicons",
+       tag: "v2.1.1",
+       sparse: "optimized",
+       app: false,
+       compile: false,
+       depth: 1}
     ]
   end
 
@@ -63,6 +73,19 @@ defmodule Fibril.MixProject do
     [
       Guides: ~r/guides\/[^\/]+\.md/,
       Tutorial: ~r/tutorial\/[^\/]+\.md/
+    ]
+  end
+
+  defp aliases do
+    [
+      setup: ["deps.get", "assets.setup", "assets.build"],
+      "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
+      "assets.build": ["tailwind vet", "esbuild vet"],
+      "assets.deploy": [
+        "tailwind vet --minify",
+        "esbuild vet --minify",
+        "phx.digest"
+      ]
     ]
   end
 end

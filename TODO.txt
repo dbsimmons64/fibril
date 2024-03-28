@@ -12,4 +12,6 @@ return it.
 6. [DONE] Allow configuration of url to access resources (but default to /admin)
 7. [TODO] Review use of resource name and plural to assure we are using them correctly (especially in urls)
 8. [TODO] Change handling of numbers in fibril_input
-9. [TODO] Automatically generate preloads from fields data.
+9. [DONE] Automatically generate preloads from fields data.
+10. [TODO] Make a form inside a modal optional, if false then display the form in a page.
+11. [TODO] Work out how to include tailwind classes from the library in phoenix app
