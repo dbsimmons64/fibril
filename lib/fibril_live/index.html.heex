@@ -1,6 +1,20 @@
 <div 
   :if={@live_action in [:index]}
 >
+
+<div class="m-8">
+  <div class="text-sm breadcrumbs">
+    <ul>
+        <li><a>Patients</a></li>
+        <li><a>Create</a></li>
+    </ul>
+  </div>
+  <div class="text-3xl font-bold">
+    Create Patient
+  </div>
+</div>
+
+
 <.header>
   Listing Pets
 
@@ -42,5 +56,4 @@
     patch={"#{@url_prefix}/#{@resource.plural}"}
   />
 
-<div class="bg-red-500">Hello</div>
-<div class="bg-blue-500">Goodbye</div>
+

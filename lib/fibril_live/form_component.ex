@@ -8,10 +8,17 @@ defmodule FibrilWeb.FibrilLive.FormComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <.header>
-        <%= @title %>
-        <:subtitle>Use this form to manage pet records in your database.</:subtitle>
-      </.header>
+    <div class="m-8">
+            <div class="text-sm breadcrumbs">
+                <ul>
+                    <li><a>Patients</a></li>
+                    <li><a>Create</a></li>
+                </ul>
+            </div>
+            <div class="text-3xl font-bold">
+                Create Patient
+            </div>
+        </div>
 
       <.simple_form
         for={@form}
@@ -19,8 +26,9 @@ defmodule FibrilWeb.FibrilLive.FormComponent do
         phx-target={@myself}
         phx-change="validate"
         phx-submit="save"
+        class="form"
       >
-
+      <div class="grid grid-cols-2 gap-6 m-8">
         <%= for field <- @fields do %>
           <.fibril_input
             field={@form[field.name]}
@@ -29,8 +37,9 @@ defmodule FibrilWeb.FibrilLive.FormComponent do
             label={set_label(field)}
           />
         <% end %>
+        </div>
         <:actions>
-          <.button phx-disable-with="Saving...">Save Pet</.button>
+        <button class="btn bg-orange-500 hover:bg-orange-400 text-white m-8">Create</button>
           <.link patch={"#{@url_prefix}/#{@resource.plural}/new"}>
 
     </.link>

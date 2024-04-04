@@ -333,11 +333,12 @@ defmodule Fibril.CoreComponents do
   def input(%{type: "select"} = assigns) do
     ~H"""
     <div phx-feedback-for={@name}>
+    <div>
       <.label for={@id}><%= @label %></.label>
       <select
         id={@id}
         name={@name}
-        class="mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm"
+        class="select select-bordered w-full rounded-lg  focus:outline-none focus:border-2 focus:border-orange-400 pl-4">
         multiple={@multiple}
         {@rest}
       >
@@ -345,6 +346,7 @@ defmodule Fibril.CoreComponents do
         <%= Phoenix.HTML.Form.options_for_select(@options, @value) %>
       </select>
       <.error :for={msg <- @errors}><%= msg %></.error>
+    </div>
     </div>
     """
   end
@@ -372,7 +374,7 @@ defmodule Fibril.CoreComponents do
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""
-    <div phx-feedback-for={@name}>
+    <div phx-feedback-for={@name} >
       <.label for={@id}><%= @label %></.label>
       <input
         type={@type}
@@ -380,10 +382,12 @@ defmodule Fibril.CoreComponents do
         id={@id}
         value={Phoenix.HTML.Form.normalize_value(@type, @value)}
         class={[
-          "mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6",
-          "phx-no-feedback:border-zinc-300 phx-no-feedback:focus:border-zinc-400",
-          @errors == [] && "border-zinc-300 focus:border-zinc-400",
-          @errors != [] && "border-rose-400 focus:border-rose-400"
+          "border  border-gray-300 w-full rounded-lg leading-9  pl-4",
+          "phx-no-feedback:border-gray-300 phx-no-feedback:focus:border-orange-400",
+          "phx-no-feedback:focus:border-2 phx-no-feedback:focus:outline-none phx-no-feedback:focus:border-orange-400",
+
+          @errors == [] && "focus:outline-none focus:border-2 focus:border-orange-400",
+          @errors != [] && "border-2 border-red-400 focus:outline-none focus:border-2 focus:border-red-400"
         ]}
         {@rest}
       />
@@ -400,7 +404,7 @@ defmodule Fibril.CoreComponents do
 
   def label(assigns) do
     ~H"""
-    <label for={@for} class="block text-sm font-semibold leading-6 text-zinc-800">
+    <label for={@for} class="text-sm leading-6 font-medium">
       <%= render_slot(@inner_block) %>
     </label>
     """
