@@ -6,31 +6,31 @@ defmodule Fibril.FibrilComponents do
 
   def fibril_input(%{type: :text} = assigns) do
     ~H"""
-    <.input field={@field} type="text" label={@label} />
+    <.input field={@name} type="text" label={@label} />
     """
   end
 
   def fibril_input(%{type: :integer} = assigns) do
     ~H"""
-    <.input field={@field} type="text" label={@label} />
+    <.input field={@name} type="text" label={@label} />
     """
   end
 
   def fibril_input(%{type: :association} = assigns) do
     ~H"""
-    <.input field={@field} type="select" options={fetch_options(assigns)} label={@label} />
+    <.input field={@name} type="select" options={fetch_options(assigns)} label={@label} />
     """
   end
 
   def fibril_input(%{type: :date} = assigns) do
     ~H"""
-    <.input field={@field} type="date" label={@label} />
+    <.input field={@name} type="date" label={@label} />
     """
   end
 
   def fibril_input(%{type: :select} = assigns) do
     ~H"""
-    <.input field={@field} type="select" options={assigns.fibril.options} label={@label} />
+    <.input field={@name} type="select" options={@field.options} label={@label} />
     """
   end
 
@@ -141,13 +141,13 @@ defmodule Fibril.FibrilComponents do
   end
 
   def fetch_options(assigns) do
-    name = assigns.fibril.value
+    name = assigns.field.value
 
     query =
-      if assigns.fibril[:queryable] do
-        assigns.fibril.queryable.()
+      if assigns.field[:queryable] do
+        assigns.field.queryable.()
       else
-        assigns.fibril.association.queryable
+        assigns.field.association.queryable
       end
 
     query

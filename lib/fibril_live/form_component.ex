@@ -31,9 +31,9 @@ defmodule FibrilWeb.FibrilLive.FormComponent do
       <div class="grid grid-cols-2 gap-6 m-8">
         <%= for field <- @fields do %>
           <.fibril_input
-            field={@form[field.name]}
+            name={@form[field.name]}
             type={field.html_type}
-            fibril={field}
+            field={field}
             label={set_label(field)}
           />
         <% end %>

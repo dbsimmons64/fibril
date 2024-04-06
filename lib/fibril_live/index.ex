@@ -17,8 +17,7 @@ defmodule FibrilWeb.FibrilLive.Index do
      |> assign(:url_prefix, Schema.url_prefix())
      |> assign(resource: resource)
      |> assign(:fields, table.fields)
-     |> assign(:preloads, preloads)
-     |> stream(:records, Resource.list_records(resource.module, preloads))}
+     |> assign(:preloads, preloads)}
   end
 
   @impl true
