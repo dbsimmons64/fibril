@@ -16,7 +16,7 @@ defmodule FibrilWeb.FibrilLive.FormComponent do
                 </ul>
             </div>
             <div class="text-3xl font-bold">
-                Create Patient
+                <%= Atom.to_string(@action) |> String.capitalize() %> <%= String.capitalize(@configuration.resource.name) %>
             </div>
         </div>
 

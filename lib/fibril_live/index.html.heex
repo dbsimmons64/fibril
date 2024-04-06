@@ -9,24 +9,21 @@
         <li><a>Create</a></li>
     </ul>
   </div>
-  <div class="text-3xl font-bold">
-    Create Patient
-  </div>
+
+  <div class="flex justify-between">
+    <div class="text-3xl font-bold">
+      <%= String.capitalize(@resource.plural) %>
+    </div>
+    <div>
+      <.link patch={"#{@url_prefix}/#{@resource.plural}/new"}>
+        <button class="btn bg-orange-500 hover:bg-orange-400 text-white m-8">New <%= @resource.name %></button>  
+      </.link>
+    </div>
+  </div>  
 </div>
 
-
-<.header>
-  Listing Pets
-
-  <:actions>
-    <.link patch={"#{@url_prefix}/#{@resource.plural}/new"}>
-      <.button>New <%= @resource.name %></.button>
-    </.link>
-  </:actions>
-</.header>
-
 <.table
-  id="pets"
+  id={@resource.plural}
   rows={@streams.records}
   row_click={fn {_id, pet} -> JS.navigate("#{@url_prefix}/#{@resource.plural}/#{pet.id}/edit") end}
 >
