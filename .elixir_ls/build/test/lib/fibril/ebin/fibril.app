@@ -15,6 +15,7 @@
                         'Elixir.Fibril.Resource',
                         'Elixir.Fibril.Resource.Pets',
                         'Elixir.Fibril.Resource.Pets2','Elixir.Fibril.Schema',
+                        'Elixir.FibrilLive.BTFormComponent',
                         'Elixir.FibrilWeb','Elixir.FibrilWeb.ConnCase',
                         'Elixir.FibrilWeb.FibrilLive.FormComponent',
                         'Elixir.FibrilWeb.FibrilLive.Index',

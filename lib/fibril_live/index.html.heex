@@ -41,15 +41,18 @@
 </.table>
 </div>
 
+ <div>Live Action <%= @live_action %></div>
 
   <.live_component
-  :if={@live_action in [:new, :edit]}
+  :if={@live_action in [:new, :edit, :new_belongs_to] }
     module={FibrilWeb.FibrilLive.FormComponent}
     configuration={@configuration}
     id={@record.id || :new}
     title={@page_title}
+    page_title={@page_title}
     action={@live_action}
     record={@record}
+    new_belongs_to={@new_belongs_to}
     patch={"#{@url_prefix}/#{@resource.plural}"}
   />
 

@@ -17,6 +17,7 @@ defmodule FibrilWeb.FibrilLive.Index do
      |> assign(:url_prefix, Schema.url_prefix())
      |> assign(resource: resource)
      |> assign(:fields, table.fields)
+     |> assign(:saturday, "Saturday")
      |> assign(:preloads, preloads)}
   end
 
@@ -41,6 +42,7 @@ defmodule FibrilWeb.FibrilLive.Index do
 
     socket
     |> assign(:page_title, "New #{String.capitalize(resource.name)}")
+    |> assign(:new_belongs_to, false)
     |> assign(:record, Schema.get_struct(resource.module))
   end
 

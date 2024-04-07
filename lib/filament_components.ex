@@ -3,6 +3,7 @@ defmodule Fibril.FibrilComponents do
   use Phoenix.Component
   import Fibril.CoreComponents
   alias Fibril.Schema
+  alias Phoenix.LiveView.JS
 
   def fibril_input(%{type: :text} = assigns) do
     ~H"""
@@ -19,6 +20,10 @@ defmodule Fibril.FibrilComponents do
   def fibril_input(%{type: :association} = assigns) do
     ~H"""
     <.input field={@name} type="select" options={fetch_options(assigns)} label={@label} />
+
+    <div :if={@field[:createOptionForm]}>
+            <div phx-click="create-belongs-to", phx-target={@myself}>Create</div>
+            </div>
     """
   end
 

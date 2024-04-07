@@ -5,51 +5,6 @@ defmodule FibrilWeb.FibrilLive.FormComponent do
   alias Fibril.Resource
 
   @impl true
-  def render(assigns) do
-    ~H"""
-    <div>
-    <div class="m-8">
-            <div class="text-sm breadcrumbs">
-                <ul>
-                    <li><a>Patients</a></li>
-                    <li><a>Create</a></li>
-                </ul>
-            </div>
-            <div class="text-3xl font-bold">
-                <%= Atom.to_string(@action) |> String.capitalize() %> <%= String.capitalize(@configuration.resource.name) %>
-            </div>
-        </div>
-
-      <.simple_form
-        for={@form}
-        id="fibril-form"
-        phx-target={@myself}
-        phx-change="validate"
-        phx-submit="save"
-        class="form"
-      >
-      <div class="grid grid-cols-2 gap-6 m-8">
-        <%= for field <- @fields do %>
-          <.fibril_input
-            name={@form[field.name]}
-            type={field.html_type}
-            field={field}
-            label={set_label(field)}
-          />
-        <% end %>
-        </div>
-        <:actions>
-        <button class="btn bg-orange-500 hover:bg-orange-400 text-white m-8">Create</button>
-          <.link patch={"#{@url_prefix}/#{@resource.plural}/new"}>
-
-    </.link>
-        </:actions>
-      </.simple_form>
-    </div>
-    """
-  end
-
-  @impl true
   def update(%{record: record} = assigns, socket) do
     resource = apply(assigns.configuration, :resource, [])
     form = apply(assigns.configuration, :form, [])
@@ -64,6 +19,7 @@ defmodule FibrilWeb.FibrilLive.FormComponent do
      |> assign(:url_prefix, Schema.url_prefix())
      |> assign(resource: resource)
      |> assign(:form, to_form(changeset, as: "fibril"))
+     |> assign(:record, record)
      |> assign(:opts, form)}
   end
 
@@ -76,9 +32,21 @@ defmodule FibrilWeb.FibrilLive.FormComponent do
     {:noreply, assign(socket, :form, to_form(changeset, as: "fibril"))}
   end
 
-  def handle_event("save", %{"fibril" => fibril_params}, socket) do
+  def handle_event("save", %{"fibril" => fibril_params} = params, socket) do
     save_resource(socket, socket.assigns.action, fibril_params)
     # save_resource(socket, :new, fibril_params)
+  end
+
+  def handle_event("create-belongs-to", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:action, :new_belongs_to)}
+  end
+
+  def handle_event("close-belongs-to", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:action, :new)}
   end
 
   defp save_resource(socket, :edit, fibril_params) do
