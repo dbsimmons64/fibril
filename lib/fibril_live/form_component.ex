@@ -37,9 +37,15 @@ defmodule FibrilWeb.FibrilLive.FormComponent do
     # save_resource(socket, :new, fibril_params)
   end
 
-  def handle_event("create-belongs-to", _params, socket) do
+  def handle_event("create-belongs-to", params, socket) do
+    field_name = params["name"]
+
+    field =
+      Enum.find(socket.assigns.fields, fn field -> Atom.to_string(field.name) == field_name end)
+
     {:noreply,
      socket
+     |> assign(:field, field)
      |> assign(:action, :new_belongs_to)}
   end
 
