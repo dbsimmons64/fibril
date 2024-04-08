@@ -1,5 +1,7 @@
 {application,fibril,
-             [{compile_env,[{fibril,['Elixir.Fibril.Gettext'],error},
+             [{compile_env,[{elixir,[dbg_callback],
+                                    {ok,{'Elixir.Macro',dbg,[]}}},
+                            {fibril,['Elixir.Fibril.Gettext'],error},
                             {fibril,[endpoint],error}]},
               {optional_applications,[]},
               {applications,[kernel,stdlib,elixir,logger,phoenix_view,

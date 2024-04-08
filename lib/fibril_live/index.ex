@@ -5,7 +5,10 @@ defmodule FibrilWeb.FibrilLive.Index do
   alias Fibril.Schema
 
   @impl true
-  def mount(%{"resource" => resource}, _session, socket) do
+  def mount(%{"resource" => resource} = foo, session, socket) do
+    dbg(session)
+    dbg(foo)
+    dbg(socket)
     configuration = Module.concat([Schema.module_prefix(), String.capitalize(resource)])
     resource = configuration.resource
     table = configuration.table
@@ -42,7 +45,6 @@ defmodule FibrilWeb.FibrilLive.Index do
 
     socket
     |> assign(:page_title, "New #{String.capitalize(resource.name)}")
-    |> assign(:new_belongs_to, false)
     |> assign(:record, Schema.get_struct(resource.module))
   end
 
