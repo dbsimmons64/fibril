@@ -121,11 +121,29 @@ defmodule Fibril.Schema do
     # apply(module, :__struct__, [])
   end
 
-  def get_changeset(module, changeset, struct, attrs) when changeset == nil do
-    apply(module, :changeset, [struct, attrs])
+  @doc """
+  Returns the given changeset for the module
+
+  If no changeset is given then a default of :changeset is assumed.
+
+
+   Vet.Owners.Owner,
+  nil,
+  %Vet.Owners.Owner{
+    __meta__: #Ecto.Schema.Metadata<:built, "owners">,
+    id: nil,
+    name: nil,
+    pets: #Ecto.Association.NotLoaded<association :pets is not loaded>,
+    inserted_at: nil,
+    updated_at: nil
+  },
+  %{}
+  """
+  def get_changeset(module, changeset, schema, attrs) when changeset == nil do
+    apply(module, :changeset, [schema, attrs])
   end
 
-  def get_changeset(module, changeset, struct, attrs) do
-    apply(module, changeset, [struct, attrs])
+  def get_changeset(module, changeset, schema, attrs) do
+    apply(module, changeset, [schema, attrs])
   end
 end

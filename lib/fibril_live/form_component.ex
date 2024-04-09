@@ -5,15 +5,9 @@ defmodule FibrilWeb.FibrilLive.FormComponent do
   alias Fibril.Resource
 
   @impl true
-
-  @impl true
-  def update(%{field_name: field_name, resource: resource} = assigns, socket) do
+  def update(%{field_name: field_name, resource: resource}, socket) do
     updated_field = %{Atom.to_string(field_name) => resource.id}
     params = Map.merge(socket.assigns.form.params, updated_field)
-
-    # changeset =
-    #   Resource.get_changeset(socket.assigns.configuration, params)
-    #   |> Map.put(:action, :validate)
 
     changeset =
       Schema.get_changeset(
@@ -56,9 +50,8 @@ defmodule FibrilWeb.FibrilLive.FormComponent do
     {:noreply, assign(socket, :form, to_form(changeset, as: "fibril"))}
   end
 
-  def handle_event("save", %{"fibril" => fibril_params} = params, socket) do
+  def handle_event("save", %{"fibril" => fibril_params}, socket) do
     save_resource(socket, socket.assigns.action, fibril_params)
-    # save_resource(socket, :new, fibril_params)
   end
 
   def handle_event("open-belongs-to", params, socket) do

@@ -20,7 +20,6 @@ defmodule FibrilWeb.FibrilLive.Index do
      |> assign(:url_prefix, Schema.url_prefix())
      |> assign(resource: resource)
      |> assign(:fields, table.fields)
-     |> assign(:saturday, "Saturday")
      |> assign(:preloads, preloads)}
   end
 

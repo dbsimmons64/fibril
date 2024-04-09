@@ -1,7 +1,6 @@
 defmodule FibrilLive.BTFormComponent do
   use FibrilWeb, :live_component
 
-  alias Fibril.Resource
   alias Fibril.Schema
 
   @impl true
@@ -9,7 +8,7 @@ defmodule FibrilLive.BTFormComponent do
     ~H"""
     <div>
        <.simple_form
-        for={@form}
+        for={@bt_form}
         id="fibril-btform"
         phx-target={@myself}
         phx-change="validate"
@@ -19,21 +18,17 @@ defmodule FibrilLive.BTFormComponent do
       <div class="grid grid-cols-2 gap-6 m-8">
         <%= for field <- @fields do %>
           <.fibril_input
-            name={@form[field.name]}
+            name={@bt_form[field.name]}
             type={field.html_type}
             field={field}
             myself={@myself}
             label={set_label(field)}
           />
-
-
         <% end %>
         </div>
         <:actions>
         <button class="btn bg-orange-500 hover:bg-orange-400 text-white m-8">Create</button>
-          <.link patch={"#{@url_prefix}/resource/new"}>
-
-    </.link>
+          <.link patch={"#{@url_prefix}/resource/new"}></.link>
         </:actions>
       </.simple_form>
       </div>
@@ -41,22 +36,21 @@ defmodule FibrilLive.BTFormComponent do
   end
 
   @impl true
-  def update(%{record: record} = assigns, socket) do
+  def update(assigns, socket) do
     field = assigns.field
     module = field.association.related
     fields = Schema.get_metadata_for_fields(field.createOptionForm.fields, module)
-    changeset = Schema.get_changeset(module, field.createOptionForm[:changeset], record, %{})
 
-    # Warning HARD CODED!!!!!!!!!!
-    resource = :owner
+    record = Schema.get_struct(module)
+
+    changeset = Schema.get_changeset(module, field.createOptionForm[:changeset], record, %{})
 
     {:ok,
      socket
      |> assign(assigns)
      |> assign(:fields, fields)
      |> assign(:url_prefix, Schema.url_prefix())
-     |> assign(:form, to_form(changeset, as: "fibril2"))
-     |> assign(:resource, resource)
+     |> assign(:bt_form, to_form(changeset, as: "fibril2"))
      |> assign(:record, record)}
   end
 
@@ -74,12 +68,11 @@ defmodule FibrilLive.BTFormComponent do
       )
       |> Map.put(:action, :validate)
 
-    {:noreply, assign(socket, :form, to_form(changeset, as: "fibril2"))}
+    {:noreply, assign(socket, :bt_form, to_form(changeset, as: "fibril2"))}
   end
 
-  def handle_event("save", %{"fibril2" => fibril_params} = params, socket) do
+  def handle_event("save", %{"fibril2" => fibril_params}, socket) do
     save_resource(socket, :new, fibril_params)
-    # save_resource(socket, :new, fibril_params)
   end
 
   defp save_resource(socket, :new, fibril_params) do
@@ -120,7 +113,7 @@ defmodule FibrilLive.BTFormComponent do
   end
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
-    assign(socket, :form, to_form(changeset, as: "fibril2"))
+    assign(socket, :bt_form, to_form(changeset, as: "fibril2"))
   end
 
   defp notify_parent(parent, msg), do: send_update(parent, msg)
