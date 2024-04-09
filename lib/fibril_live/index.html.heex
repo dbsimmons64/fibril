@@ -12,7 +12,7 @@
 
   <div class="flex justify-between">
     <div class="text-3xl font-bold">
-      <%= String.capitalize(@resource.plural) %>
+      <%= @page_title %>
     </div>
     <div>
       <.link patch={"#{@url_prefix}/#{@resource.plural}/new"}>

@@ -5,13 +5,12 @@ defmodule FibrilWeb.FibrilLive.Index do
   alias Fibril.Schema
 
   @impl true
-  def mount(%{"resource" => resource} = foo, session, socket) do
-    dbg(session)
-    dbg(foo)
-    dbg(socket)
+  def mount(%{"resource" => resource}, _session, socket) do
     configuration = Module.concat([Schema.module_prefix(), String.capitalize(resource)])
+
     resource = configuration.resource
     table = configuration.table
+
     preloads = Schema.create_preloads(table.fields)
 
     {:ok,
@@ -51,7 +50,7 @@ defmodule FibrilWeb.FibrilLive.Index do
     resource = socket.assigns.configuration.resource
 
     socket
-    |> assign(:page_title, "Listing #{socket.assigns.resource.plural}")
+    |> assign(:page_title, String.capitalize(socket.assigns.resource.plural))
     |> assign(:pet, nil)
     |> stream(:records, Resource.list_records(resource.module, socket.assigns.preloads))
   end

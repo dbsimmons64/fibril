@@ -18,15 +18,20 @@ defmodule Fibril.FibrilComponents do
 
   def fibril_input(%{type: :association} = assigns) do
     ~H"""
+    <div class="flex ">
+    <div class="w-full">
     <.input field={@name} type="select" options={fetch_options(assigns)} label={@label} />
+    </div>
 
     <div :if={@field[:createOptionForm]}>
       <div
+      class="border border-gray-300 mt-6 ml-2 p-3 rounded-lg"
         phx-click="open-belongs-to",
         phx-target={@myself}
         phx-value-name={@field.name}>
-        Create
+        <.icon name="hero-plus" class="h-4 w-4 text-gray-300" />
       </div>
+    </div>
     </div>
     """
   end

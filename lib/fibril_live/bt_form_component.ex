@@ -7,31 +7,34 @@ defmodule FibrilLive.BTFormComponent do
   def render(assigns) do
     ~H"""
     <div>
-       <.simple_form
-        for={@bt_form}
-        id="fibril-btform"
-        phx-target={@myself}
-        phx-change="validate"
-        phx-submit="save"
-        class="form"
-      >
-      <div class="grid grid-cols-2 gap-6 m-8">
-        <%= for field <- @fields do %>
-          <.fibril_input
-            name={@bt_form[field.name]}
-            type={field.html_type}
-            field={field}
-            myself={@myself}
-            label={set_label(field)}
-          />
-        <% end %>
-        </div>
-        <:actions>
-        <button class="btn bg-orange-500 hover:bg-orange-400 text-white m-8">Create</button>
-          <.link patch={"#{@url_prefix}/resource/new"}></.link>
-        </:actions>
-      </.simple_form>
+      <div class="text-3xl font-bold">
+        <%= @title %>
       </div>
+      <.simple_form
+      for={@bt_form}
+      id="fibril-btform"
+      phx-target={@myself}
+      phx-change="validate"
+      phx-submit="save"
+      class="form"
+    >
+    <div class="grid grid-cols-2 gap-6 m-8">
+      <%= for field <- @fields do %>
+        <.fibril_input
+          name={@bt_form[field.name]}
+          type={field.html_type}
+          field={field}
+          myself={@myself}
+          label={set_label(field)}
+        />
+      <% end %>
+      </div>
+      <:actions>
+      <button class="btn bg-orange-500 hover:bg-orange-400 text-white m-8">Create</button>
+        <.link patch={"#{@url_prefix}/resource/new"}></.link>
+      </:actions>
+    </.simple_form>
+    </div>
     """
   end
 
@@ -39,6 +42,7 @@ defmodule FibrilLive.BTFormComponent do
   def update(assigns, socket) do
     field = assigns.field
     module = field.association.related
+    title = set_title(field)
     fields = Schema.get_metadata_for_fields(field.createOptionForm.fields, module)
 
     record = Schema.get_struct(module)
@@ -48,6 +52,7 @@ defmodule FibrilLive.BTFormComponent do
     {:ok,
      socket
      |> assign(assigns)
+     |> assign(:title, title)
      |> assign(:fields, fields)
      |> assign(:url_prefix, Schema.url_prefix())
      |> assign(:bt_form, to_form(changeset, as: "fibril2"))
@@ -117,4 +122,12 @@ defmodule FibrilLive.BTFormComponent do
   end
 
   defp notify_parent(parent, msg), do: send_update(parent, msg)
+
+  defp set_title(field) do
+    if field[:title] do
+      field.title
+    else
+      field.association.related |> Module.split() |> List.last()
+    end
+  end
 end
