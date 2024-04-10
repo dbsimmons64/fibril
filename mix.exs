@@ -48,6 +48,8 @@ defmodule Fibril.MixProject do
       {:ex_doc, "~> 0.31", only: :dev, runtime: false},
       {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
+      {:flop, "~> 0.25.0"},
+      {:flop_phoenix, "~> 0.22.8"},
       {:heroicons,
        github: "tailwindlabs/heroicons",
        tag: "v2.1.1",

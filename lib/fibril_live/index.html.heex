@@ -39,9 +39,22 @@
     </.link>
   </:action>
 </.table>
+
+<div class="m-8">
+  <Flop.Phoenix.pagination
+    meta={@meta}
+    path={"#{@url_prefix}/#{@resource.plural}"}    
+    opts={[
+      wrapper_attrs: [class: "flex justify-between"],
+      pagination_list_attrs: [class: ["flex gap-4 order-2"]],
+      previous_link_attrs: [class: "order-1 btn btn-outline"],
+      next_link_attrs: [class: "order-3 btn btn-outline"],
+      page_links: {:ellipsis, 3}
+    ]}
+  />
+  </div>
 </div>
 
- <div>Live Action <%= @live_action %></div>
 
   <.live_component
   :if={@live_action in [:new, :edit, :new_belongs_to] }

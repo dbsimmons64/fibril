@@ -2,13 +2,19 @@ defmodule Fibril.Resource do
   alias Fibril.Schema
   require Ecto.Query
 
-  def list_records(struct, _preloads = nil) do
+  def list_records(struct, _preloads = nil, params) do
+    # struct
+    # |> Schema.repo().all()
+
     struct
-    |> Schema.repo().all()
+    |> Flop.validate_and_run(params, repo: Schema.repo())
   end
 
-  def list_records(struct, preloads) do
-    struct |> Ecto.Query.preload(^preloads) |> Schema.repo().all()
+  def list_records(struct, preloads, params) do
+    # struct |> Ecto.Query.preload(^preloads) |> Schema.repo().all()
+    struct
+    |> Ecto.Query.preload(^preloads)
+    |> Flop.validate_and_run(params, repo: Schema.repo())
   end
 
   @doc """

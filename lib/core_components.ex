@@ -377,6 +377,7 @@ defmodule Fibril.CoreComponents do
     <div phx-feedback-for={@name} >
       <.label for={@id}><%= @label %></.label>
       <input
+
         type={@type}
         name={@name}
         id={@id}

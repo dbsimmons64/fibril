@@ -46,18 +46,25 @@ defmodule FibrilWeb.FibrilLive.Index do
     |> assign(:record, Schema.get_struct(resource.module))
   end
 
-  defp apply_action(socket, :index, _params) do
+  defp apply_action(socket, :index, params) do
+    params = Map.merge(%{"page" => 1, "page_size" => 2}, params)
+
     resource = socket.assigns.configuration.resource
 
+    {:ok, {records, meta}} =
+      Resource.list_records(resource.module, socket.assigns.preloads, params)
+
     socket
+    |> assign(:meta, meta)
     |> assign(:page_title, String.capitalize(socket.assigns.resource.plural))
     |> assign(:pet, nil)
-    |> stream(:records, Resource.list_records(resource.module, socket.assigns.preloads))
+    |> stream(:records, records, reset: true)
   end
 
   @impl true
-  def handle_info({FibrilWeb.FibrilLive.FormComponent, {:saved, record}}, socket) do
-    {:noreply, stream_insert(socket, :records, record)}
+  def handle_info({FibrilWeb.FibrilLive.FormComponent, {:saved, _record}}, socket) do
+    #    {:noreply, stream_insert(socket, :records, record)}
+    {:noreply, socket}
   end
 
   @impl true
