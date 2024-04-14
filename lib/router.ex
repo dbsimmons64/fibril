@@ -17,10 +17,13 @@ defmodule FibrilWeb.Router do
 
     quote do
       scope unquote(url_prefix) do
-        pipe_through(unquote(pipe))
-        live("/:resource", FibrilWeb.FibrilLive.Index, :index)
-        live("/:resource/new", FibrilWeb.FibrilLive.Index, :new)
-        live("/:resource/:id/edit", FibrilWeb.FibrilLive.Index, :edit)
+        live_session :admin_user,
+          on_mount: [{Fibril.Schema.auth(), :ensure_authenticated}] do
+          pipe_through(unquote(pipe))
+          live("/:resource", FibrilWeb.FibrilLive.Index, :index)
+          live("/:resource/new", FibrilWeb.FibrilLive.Index, :new)
+          live("/:resource/:id/edit", FibrilWeb.FibrilLive.Index, :edit)
+        end
       end
     end
   end

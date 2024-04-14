@@ -2,6 +2,7 @@ defmodule Fibril.FibrilComponents do
   require Ecto.Query
   use Phoenix.Component
   import Fibril.CoreComponents
+  alias Fibril.Resource
   alias Fibril.Schema
 
   def fibril_input(%{type: :text} = assigns) do
@@ -45,6 +46,33 @@ defmodule Fibril.FibrilComponents do
   def fibril_input(%{type: :select} = assigns) do
     ~H"""
     <.input field={@name} type="select" options={@field.options} label={@label} />
+    """
+  end
+
+  def fibril_column(%{display_type: :text} = assigns) do
+    ~H"""
+    <%= Resource.fetch_data(assigns.record, assigns.field) %>
+    """
+  end
+
+  def fibril_column(%{display_type: :icon} = assigns) do
+    column_value = Resource.fetch_data(assigns.record, assigns.field)
+    assigns = assign(assigns, :icon, assigns.field.options[column_value])
+
+    ~H"""
+    <.icon name={@icon} class="h-5 w-5" />
+    """
+  end
+
+  def fibril_column(%{display_type: :calculated} = assigns) do
+    [func | args] = assigns.field.calculation
+
+    args = Enum.map(args, fn arg -> assigns[arg] end)
+    result = apply(func, args)
+    assigns = assign(assigns, :result, result)
+
+    ~H"""
+    <%= @result %>
     """
   end
 
@@ -120,6 +148,24 @@ defmodule Fibril.FibrilComponents do
     else
       " "
     end
+  end
+
+  def show_field(option, _assigns) when is_nil(option) do
+    true
+  end
+
+  def show_field(option, _assigns) when is_atom(option) do
+    option
+  end
+
+  def show_field(option, assigns) when is_list(option) do
+    [func | args] = option
+
+    args = Enum.map(args, fn arg -> assigns[arg] end)
+    apply(func, args)
+  end
+
+  def show_field(field) when is_list(field) do
   end
 
   @doc """

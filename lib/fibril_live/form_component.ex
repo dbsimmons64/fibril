@@ -43,8 +43,6 @@ defmodule FibrilWeb.FibrilLive.FormComponent do
 
   @impl true
   def handle_event("validate", %{"fibril" => fibril_params}, socket) do
-    dbg(fibril_params)
-
     changeset =
       Resource.get_changeset(socket.assigns.configuration, fibril_params)
       |> Map.put(:action, :validate)

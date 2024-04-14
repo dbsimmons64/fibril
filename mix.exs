@@ -63,11 +63,13 @@ defmodule Fibril.MixProject do
   defp extras() do
     [
       "guides/Introduction.md",
+      "guides/notes.md",
       "guides/tutorial/Introduction.md",
       "guides/tutorial/Initial Configuration.md",
       "guides/tutorial/Configuring Fibril.md",
       "guides/tutorial/Add a resource to Fibril.md",
-      "guides/tutorial/Addings Pets.md"
+      "guides/tutorial/Addings Pets.md",
+      "guides/table_builder/table_types.md"
     ]
   end
 

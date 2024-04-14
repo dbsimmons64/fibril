@@ -3,22 +3,28 @@ defmodule FibrilWeb.FibrilLive.Index do
 
   alias Fibril.Resource
   alias Fibril.Schema
+  alias Fibril.Table
 
   @impl true
-  def mount(%{"resource" => resource}, _session, socket) do
+  def mount(%{"resource" => resource}, session, socket) do
     configuration = Module.concat([Schema.module_prefix(), String.capitalize(resource)])
 
     resource = configuration.resource
-    table = configuration.table
+    table_opts = configuration.table
 
-    preloads = Schema.create_preloads(table.fields)
+    columns = Table.get_columns_metadata(table_opts.fields, resource.module)
+
+    preloads = Schema.create_preloads(table_opts.fields)
 
     {:ok,
      socket
+     |> assign(:current_user, socket.assigns.current_user)
      |> assign(:configuration, configuration)
+     |> assign(:table_opts, table_opts)
      |> assign(:url_prefix, Schema.url_prefix())
      |> assign(resource: resource)
-     |> assign(:fields, table.fields)
+     # |> assign(:fields, table_opts.fields)
+     |> assign(:fields, columns)
      |> assign(:preloads, preloads)}
   end
 
@@ -47,7 +53,11 @@ defmodule FibrilWeb.FibrilLive.Index do
   end
 
   defp apply_action(socket, :index, params) do
-    params = Map.merge(%{"page" => 1, "page_size" => 2}, params)
+    # [func | args] = socket.assigns.table_opts[:foo]
+    # apply(func, args) |> dbg()
+
+    page_size = get_in(socket.assigns, [:table_opts, :pagination, :page_size])
+    params = Map.merge(%{"page_size" => page_size}, params)
 
     resource = socket.assigns.configuration.resource
 

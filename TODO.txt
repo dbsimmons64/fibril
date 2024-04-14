@@ -15,3 +15,4 @@ return it.
 9. [DONE] Automatically generate preloads from fields data.
 10. [TODO] Make a form inside a modal optional, if false then display the form in a page.
 11. [TODO] Work out how to include tailwind classes from the library in phoenix app
+12. [TODO] All fields must be specified as maps (no longer accept atoms).

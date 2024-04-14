@@ -27,8 +27,13 @@
   rows={@streams.records}
   row_click={fn {_id, pet} -> JS.navigate("#{@url_prefix}/#{@resource.plural}/#{pet.id}/edit") end}
 >
-  <:col :let={{_id, record}} :for={field <- @fields} label={set_label(field)}>
-    <%= Resource.fetch_data(record, field) %>
+  <:col :let={{_id, record}} :for={field <- @fields} :if={show_field(field[:hide], assigns) == true} label={set_label(field)}>
+    <.fibril_column 
+      display_type={field.display_type}
+      field={field} 
+      record={record} 
+      
+    />
   </:col>
   <:action :let={{id, record}}>
     <.link
