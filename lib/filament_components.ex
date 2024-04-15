@@ -13,7 +13,7 @@ defmodule Fibril.FibrilComponents do
 
   def fibril_input(%{type: :integer} = assigns) do
     ~H"""
-    <.input field={@name} type="text" label={@label} />
+    <.input field={@name} type="text" label={@label} class="badge" />
     """
   end
 
@@ -50,8 +50,17 @@ defmodule Fibril.FibrilComponents do
   end
 
   def fibril_column(%{display_type: :text} = assigns) do
+    badge_class = get_badge(assigns)
+    # description = get_description(assigns)
+
+    assigns = assign(assigns, :class, badge_class)
+
     ~H"""
-    <%= Resource.fetch_data(assigns.record, assigns.field) %>
+    <.description_above field={@field} />
+    <div class={@class}>
+      <%= Resource.fetch_data(assigns.record, assigns.field) %>
+    </div>
+    <.description_below field={@field} />
     """
   end
 
@@ -74,6 +83,63 @@ defmodule Fibril.FibrilComponents do
     ~H"""
     <%= @result %>
     """
+  end
+
+  def get_badge(assigns) do
+    if assigns.field[:badge] do
+      badge = assigns.field.badge
+
+      badge_colour = get_badge_colour(badge.colours, assigns)
+      badge_outline = get_badge_outline(badge[:outline])
+
+      "badge #{badge_colour} #{badge_outline}"
+    else
+      ""
+    end
+  end
+
+  def get_badge_colour(colours, assigns) when is_map(colours) do
+    colours[Resource.fetch_data(assigns.record, assigns.field)]
+  end
+
+  def get_badge_colour(colours, assigns) when is_list(colours) do
+    [func | args] = colours
+
+    args = Enum.map(args, fn arg -> assigns[arg] end)
+    apply(func, args)
+  end
+
+  def description_above(assigns) do
+    if assigns.field[:description] && assigns.field.description[:position] == :above do
+      ~H"""
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">
+        <%= @field.description.text %>
+      </p>
+      """
+    else
+      ~H"""
+      """
+    end
+  end
+
+  def description_below(assigns) do
+    if assigns.field[:description] && assigns.field.description[:position] != :above do
+      ~H"""
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        <%= @field.description.text %>
+      </p>
+      """
+    else
+      ~H"""
+      """
+    end
+  end
+
+  def get_badge_outline(outline) do
+    case outline do
+      true -> "badge-outline"
+      _ -> ""
+    end
   end
 
   def fb_header(assigns) do
@@ -155,7 +221,7 @@ defmodule Fibril.FibrilComponents do
   end
 
   def show_field(option, _assigns) when is_atom(option) do
-    option
+    !option
   end
 
   def show_field(option, assigns) when is_list(option) do
