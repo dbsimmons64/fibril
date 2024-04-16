@@ -58,7 +58,7 @@ defmodule Fibril.FibrilComponents do
     ~H"""
     <.description_above field={@field} />
     <div class={@class}>
-      <%= Resource.fetch_data(assigns.record, assigns.field) %>
+      <%= Resource.fetch_data(assigns.record, assigns.field) |> possibly_format_date(assigns) %>
     </div>
     <.description_below field={@field} />
     """
@@ -109,6 +109,13 @@ defmodule Fibril.FibrilComponents do
     apply(func, args)
   end
 
+  def get_badge_outline(outline) do
+    case outline do
+      true -> "badge-outline"
+      _ -> ""
+    end
+  end
+
   def description_above(assigns) do
     if assigns.field[:description] && assigns.field.description[:position] == :above do
       ~H"""
@@ -135,10 +142,12 @@ defmodule Fibril.FibrilComponents do
     end
   end
 
-  def get_badge_outline(outline) do
-    case outline do
-      true -> "badge-outline"
-      _ -> ""
+  def possibly_format_date(value, assigns) do
+    if assigns.field[:datetime] do
+      {:ok, value} = Timex.format(value, assigns.field.datetime, :strftime)
+      value
+    else
+      value
     end
   end
 
