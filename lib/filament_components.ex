@@ -17,6 +17,12 @@ defmodule Fibril.FibrilComponents do
     """
   end
 
+  def fibril_input(%{type: :decimal} = assigns) do
+    ~H"""
+    <.input field={@name} type="text" label={@label} class="badge" />
+    """
+  end
+
   def fibril_input(%{type: :association} = assigns) do
     ~H"""
     <div class="flex ">
@@ -50,16 +56,75 @@ defmodule Fibril.FibrilComponents do
   end
 
   def fibril_column(%{display_type: :text} = assigns) do
-    badge_class = get_badge(assigns)
-    # description = get_description(assigns)
+    # What can impact a display type:
+    #
+    # Prefixes e.g. money symbol or icon
+    # classes associated with the data e.g text size or text colour.
+    # format of the data e.g. decimal places or maximum length of text
+    # Suffixes e.g. icon or suffix
 
-    assigns = assign(assigns, :class, badge_class)
+    raw_value = Resource.fetch_data(assigns.record, assigns.field)
+
+    formatted_value =
+      raw_value
+
+    assigns = assign(assigns, :value, formatted_value)
+
+    class =
+      []
+      |> get_badge(raw_value, get_in(assigns.field, [:badge]), assigns)
+      |> Enum.uniq()
+
+    assigns = assign(assigns, :class, class)
+
+    ~H"""
+
+    <.description_above field={@field} />
+    <div class={@class}>
+      <%= @value   %>
+    </div>
+    <.description_below field={@field} />
+    """
+  end
+
+  # Need to rework the :decimal column
+  def fibril_column(%{display_type: display_type} = assigns)
+      when display_type in [:decimal, :integer] do
+    raw_value = Resource.fetch_data(assigns.record, assigns.field)
+
+    formatted_value =
+      raw_value
+      |> format_money(get_in(assigns.field, [:money]), assigns)
+      |> format_date(get_in(assigns.field, [:datetime]), assigns)
+
+    assigns =
+      assigns
+      |> assign(:value, formatted_value)
+      |> assign(:raw_value, raw_value)
+
+    ~H"""
+
+    <.description_above field={@field} />
+
+
+      <%= @value  %>
+
+    <.description_below field={@field} />
+    """
+  end
+
+  def fibril_column(%{display_type: :date} = assigns) do
+    # badge_class = get_badge(assigns)
+
+    value =
+      Resource.fetch_data(assigns.record, assigns.field)
+      |> format_date(get_in(assigns.field, [:datetime]), assigns)
+
+    assigns = assign(assigns, :value, value)
 
     ~H"""
     <.description_above field={@field} />
-    <div class={@class}>
-      <%= Resource.fetch_data(assigns.record, assigns.field) |> possibly_format_date(assigns) %>
-    </div>
+      <%= @value  %>
     <.description_below field={@field} />
     """
   end
@@ -85,35 +150,11 @@ defmodule Fibril.FibrilComponents do
     """
   end
 
-  def get_badge(assigns) do
-    if assigns.field[:badge] do
-      badge = assigns.field.badge
-
-      badge_colour = get_badge_colour(badge.colours, assigns)
-      badge_outline = get_badge_outline(badge[:outline])
-
-      "badge #{badge_colour} #{badge_outline}"
-    else
-      ""
-    end
-  end
-
-  def get_badge_colour(colours, assigns) when is_map(colours) do
-    colours[Resource.fetch_data(assigns.record, assigns.field)]
-  end
-
-  def get_badge_colour(colours, assigns) when is_list(colours) do
-    [func | args] = colours
+  def apply_function(list, assigns) do
+    [func | args] = list
 
     args = Enum.map(args, fn arg -> assigns[arg] end)
     apply(func, args)
-  end
-
-  def get_badge_outline(outline) do
-    case outline do
-      true -> "badge-outline"
-      _ -> ""
-    end
   end
 
   def description_above(assigns) do
@@ -142,13 +183,74 @@ defmodule Fibril.FibrilComponents do
     end
   end
 
-  def possibly_format_date(value, assigns) do
-    if assigns.field[:datetime] do
-      {:ok, value} = Timex.format(value, assigns.field.datetime, :strftime)
-      value
-    else
-      value
-    end
+  def get_badge(class, _value, options, _assigns) when is_nil(options) do
+    class
+  end
+
+  def get_badge(class, value, options, assigns) when is_map(options) do
+    class
+    |> get_badge_colour(value, get_in(options, [:colours]), assigns)
+    |> get_badge_outline(value, get_in(options, [:outline]), assigns)
+  end
+
+  def get_badge_colour(class, _value, colours, _assigns) when is_nil(colours) do
+    class
+  end
+
+  def get_badge_colour(class, value, colours, _assigns) when is_map(colours) do
+    class ++ ["badge", colours[value]]
+  end
+
+  def get_badge_colour(class, _value, colours, assigns) when is_list(colours) do
+    class ++ [apply_function(colours, assigns)]
+  end
+
+  def get_badge_outline(class, _value, outline, _assigns) when is_nil(outline) do
+    class
+  end
+
+  def get_badge_outline(class, _value, outline, _assigns) when outline == true do
+    class ++ ["badge", "badge-outline"]
+  end
+
+  def get_badge_outline(class, _value, outline, assigns) when is_list(outline) do
+    class ++ [apply_function(outline, assigns)]
+  end
+
+  def format_money(value, money, _assigns) when is_nil(money) do
+    value
+  end
+
+  def format_money(value, money, assigns) when is_map(money) do
+    value
+    |> format_divide_by(get_in(money, [:divide_by]), assigns)
+    |> Decimal.to_string()
+    |> format_currency(get_in(money, [:currency]), assigns)
+  end
+
+  def format_currency(value, currency, _assigns) when is_nil(currency) do
+    value
+  end
+
+  def format_currency(value, currency, _assigns) when is_binary(currency) do
+    currency <> value
+  end
+
+  def format_divide_by(value, divisor, _assigns) when is_nil(divisor) do
+    value
+  end
+
+  def format_divide_by(value, divisor, _assigns) when is_number(divisor) do
+    Decimal.div(value, Decimal.new(divisor)) |> Decimal.round(2)
+  end
+
+  def format_date(value, date_format, _assigns) when is_nil(date_format) do
+    value
+  end
+
+  def format_date(value, date_format, _assigns) when is_binary(date_format) do
+    {:ok, value} = Timex.format(value, date_format, :strftime)
+    value
   end
 
   def fb_header(assigns) do

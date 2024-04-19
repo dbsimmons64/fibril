@@ -15,27 +15,28 @@ defmodule Fibril.Table do
   def get_column_metadata(column, schema) when is_atom(column) or is_list(column) do
     %{
       name: column,
-      display_type: :text,
-      ecto_type: get_metadata(:type, column, schema)
+      ecto_type: get_metadata(:type, column, schema),
+      display_type: get_metadata(:type, column, schema) |> get_display_type()
     }
   end
 
   def get_metadata(type, field, schema) do
     schema.__schema__(type, field)
-    # apply(schema, :__schema__, [type, field])
+  end
+
+  def get_display_type(:integer) do
+    :integer
+  end
+
+  def get_display_type(:date) do
+    :date
+  end
+
+  def get_display_type(:decimal) do
+    :decimal
+  end
+
+  def get_display_type(_ecto_type) do
+    :text
   end
 end
-
-# fields: [
-#   :description,
-#   %{
-#     name: :status,
-#     html_type: :icon,
-#     options: %{
-#       ~c"New" => ~c"icon-1",
-#       ~c"Issued" => ~c"icon-2",
-#       ~c"Paid" => ~c"icon-3"
-#     }
-#   },
-#   %{name: [:pet, :name], label: "Pet"}
-# ]

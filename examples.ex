@@ -18,13 +18,13 @@ def table() do
           position: :below
         },
 
-        datetime: true,
+        datetime: "%b %y",
         since: true,
 
         numeric: true,
         money: %{
-          currency: "EUR",
-          divideby: 100
+          currency: "£",
+          divide_by: 100
         },
         limit: 50,
         words: 10,

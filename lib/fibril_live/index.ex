@@ -6,7 +6,7 @@ defmodule FibrilWeb.FibrilLive.Index do
   alias Fibril.Table
 
   @impl true
-  def mount(%{"resource" => resource}, session, socket) do
+  def mount(%{"resource" => resource}, _session, socket) do
     configuration = Module.concat([Schema.module_prefix(), String.capitalize(resource)])
 
     resource = configuration.resource

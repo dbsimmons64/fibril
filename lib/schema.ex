@@ -108,6 +108,10 @@ defmodule Fibril.Schema do
     :text
   end
 
+  def to_html_type(:integer) do
+    :integer
+  end
+
   def to_html_type(:id) do
     :association
   end
