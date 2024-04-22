@@ -40,7 +40,7 @@ def table() do
         wrap: true,
         html: true,
         markdown: true,
-        color: 'danger',
+        colour: 'danger',
 
         size: :large,
         weight: :bold,

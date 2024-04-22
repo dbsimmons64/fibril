@@ -4,6 +4,7 @@ defmodule Fibril.Table do
   import Fibril.CoreComponents
 
   alias Fibril.Resource
+  alias Phoenix.HTML
 
   def fibril_column(%{display_type: :text} = assigns) do
     # format_text
@@ -13,7 +14,10 @@ defmodule Fibril.Table do
     raw_value = Resource.fetch_data(assigns.record, field)
     formatted_value = raw_value
 
-    formatted_value = format_text(formatted_value, field[:text], assigns)
+    formatted_value =
+      formatted_value
+      |> format_text(field[:text], assigns)
+      |> format_html(field[:html], assigns)
 
     assigns = assign(assigns, :value, formatted_value)
 
@@ -217,6 +221,22 @@ defmodule Fibril.Table do
 
     assigns = assign(assigns, :formatted_value, text)
     apply_function(suffix, assigns)
+  end
+
+  def format_html(text, _html = true, _assigns) do
+    # text |> HTML.html_escape() |> HTML.safe_to_string()
+    HTML.raw(text)
+  end
+
+  def format_html(text, html, assigns) when is_list(html) do
+    # Add formatted value to assigns so function can use it
+
+    assigns = assign(assigns, :formatted_value, text)
+    apply_function(html, assigns)
+  end
+
+  def format_html(text, _html, _assigns) do
+    text
   end
 
   @doc """
