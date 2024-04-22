@@ -30,11 +30,13 @@ def table() do
           currency: "£",
           divide_by: 100
         },
-        limit: 50,
-        words: 10,
-        lineClamp: 2,
-        prefix: "https//",
-        suffix: ".com",
+        text: %{
+          limit: 50,
+          words: 10,
+          prefix: "https//",
+          suffix: ".com",
+        },
+
         wrap: true,
         html: true,
         markdown: true,

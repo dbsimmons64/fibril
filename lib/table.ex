@@ -13,6 +13,8 @@ defmodule Fibril.Table do
     raw_value = Resource.fetch_data(assigns.record, field)
     formatted_value = raw_value
 
+    formatted_value = format_text(formatted_value, field[:text], assigns)
+
     assigns = assign(assigns, :value, formatted_value)
 
     class =
@@ -146,6 +148,75 @@ defmodule Fibril.Table do
         class={"h-4 w-4 ml-1 "<> (@icon.colour || "")}
       />
     """
+  end
+
+  def format_text(text, text_opts, assigns) do
+    text
+    |> format_limit(text_opts[:limit], assigns)
+    |> format_words(text_opts[:words], assigns)
+    |> format_prefix(text_opts[:prefix], assigns)
+    |> format_suffix(text_opts[:suffix], assigns)
+  end
+
+  def format_limit(text, limit, _assigns) when is_nil(limit) do
+    text
+  end
+
+  def format_limit(text, limit, _assigns) when is_number(limit) do
+    String.slice(text, 0, limit) <> "..."
+  end
+
+  def format_limit(text, limit, assigns) when is_list(limit) do
+    # Add formatted value to assigns so function can use it
+
+    assigns = assign(assigns, :formatted_value, text)
+    apply_function(limit, assigns)
+  end
+
+  def format_words(text, words, _assigns) when is_nil(words) do
+    text
+  end
+
+  def format_words(text, words, _assigns) when is_number(words) do
+    text = String.split(text) |> Enum.take(words) |> Enum.join(" ")
+    text <> "..."
+  end
+
+  def format_words(text, words, assigns) when is_list(words) do
+    # Add formatted value to assigns so function can use it
+
+    assigns = assign(assigns, :formatted_value, text)
+    apply_function(words, assigns)
+  end
+
+  def format_prefix(text, prefix, _assigns) when is_nil(prefix) do
+    text
+  end
+
+  def format_prefix(text, prefix, _assigns) when is_binary(prefix) do
+    prefix <> text
+  end
+
+  def format_prefix(text, prefix, assigns) when is_list(prefix) do
+    # Add formatted value to assigns so function can use it
+
+    assigns = assign(assigns, :formatted_value, text)
+    apply_function(prefix, assigns)
+  end
+
+  def format_suffix(text, suffix, _assigns) when is_nil(suffix) do
+    text
+  end
+
+  def format_suffix(text, suffix, _assigns) when is_binary(suffix) do
+    text <> suffix
+  end
+
+  def format_suffix(text, suffix, assigns) when is_list(suffix) do
+    # Add formatted value to assigns so function can use it
+
+    assigns = assign(assigns, :formatted_value, text)
+    apply_function(suffix, assigns)
   end
 
   @doc """
