@@ -86,6 +86,7 @@ defmodule FibrilWeb do
       # Core UI components and translation
       import Fibril.CoreComponents
       import Fibril.FibrilComponents
+      import Fibril.Table
       import Fibril.Gettext
 
       # Shortcut for generating JS commands

@@ -18,10 +18,14 @@ def table() do
           position: :below
         },
 
+        icon: %{
+          name: 'heroicon-m-envelope',
+          position: :after,
+          colour: "danger"
+        },
+
         datetime: "%b %y",
         since: true,
-
-        numeric: true,
         money: %{
           currency: "£",
           divide_by: 100
@@ -35,9 +39,7 @@ def table() do
         html: true,
         markdown: true,
         color: 'danger',
-        icon: 'heroicon-m-envelope',
-        icon_position: :after,
-        icon_color: "danger",
+
         size: :large,
         weight: :bold,
         font_family: :mono,

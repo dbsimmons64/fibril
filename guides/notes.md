@@ -19,3 +19,12 @@ options: [&get_icon/2, [:record, :field]]
 
 * We also need to provide the abilty to store user definable data, and pass it in arguments. Probably achieve this via a `init` type function at the start of index or form.
 
+# Icons
+icon: "heroicon-m-envelop",
+
+icon: %{
+          icon: 'heroicon-m-envelope',
+          icon_position: :after,
+          icon_colour: "danger"
+        },
+

@@ -1,6 +1,335 @@
 defmodule Fibril.Table do
   use Phoenix.Component
 
+  import Fibril.CoreComponents
+
+  alias Fibril.Resource
+
+  def fibril_column(%{display_type: :text} = assigns) do
+    # format_text
+    # decorate_text
+
+    field = assigns.field
+    raw_value = Resource.fetch_data(assigns.record, field)
+    formatted_value = raw_value
+
+    assigns = assign(assigns, :value, formatted_value)
+
+    class =
+      []
+      |> get_badge(raw_value, field[:badge], assigns)
+      |> Enum.uniq()
+
+    assigns =
+      assigns
+      |> assign(:class, class)
+      |> assign(:description, get_description(field[:description], assigns))
+      |> assign(:icon, get_icon(field[:icon], assigns))
+
+    # Not sure about using get_in - might be better to use Map..get or assign[:foo]
+
+    ~H"""
+    <.fb_description description={@description} >
+
+        <span class={@class}>
+        <.fb_icon icon={@icon}>
+          <%= @value   %>
+          </.fb_icon>
+        </span>
+
+    </.fb_description>
+    """
+  end
+
+  # Need to rework the :decimal column
+  def fibril_column(%{display_type: display_type} = assigns)
+      when display_type in [:decimal, :integer] do
+    raw_value = Resource.fetch_data(assigns.record, assigns.field)
+
+    formatted_value =
+      raw_value
+      |> format_money(get_in(assigns.field, [:money]), assigns)
+      |> format_date(get_in(assigns.field, [:datetime]), assigns)
+
+    assigns =
+      assigns
+      |> assign(:value, formatted_value)
+      |> assign(:raw_value, raw_value)
+
+    ~H"""
+
+
+
+
+      <%= @value  %>
+
+
+    """
+  end
+
+  def fibril_column(%{display_type: :date} = assigns) do
+    # badge_class = get_badge(assigns)
+
+    value =
+      Resource.fetch_data(assigns.record, assigns.field)
+      |> format_date(get_in(assigns.field, [:datetime]), assigns)
+
+    assigns = assign(assigns, :value, value)
+
+    ~H"""
+
+      <%= @value  %>
+
+    """
+  end
+
+  def fibril_column(%{display_type: :icon} = assigns) do
+    column_value = Resource.fetch_data(assigns.record, assigns.field)
+    assigns = assign(assigns, :icon, assigns.field.options[column_value])
+
+    ~H"""
+    <.icon name={@icon} class="h-5 w-5" />
+    """
+  end
+
+  def fibril_column(%{display_type: :calculated} = assigns) do
+    [func | args] = assigns.field.calculation
+
+    args = Enum.map(args, fn arg -> assigns[arg] end)
+    result = apply(func, args)
+    assigns = assign(assigns, :result, result)
+
+    ~H"""
+    <%= @result %>
+    """
+  end
+
+  def apply_function(list, assigns) do
+    [func | args] = list
+
+    args = Enum.map(args, fn arg -> assigns[arg] end)
+    apply(func, args)
+  end
+
+  def fb_description(assigns) do
+    ~H"""
+
+      <p
+        :if={@description && @description[:position] == :above}
+        class="text-sm text-gray-500 dark:text-gray-400 mb-1">
+          <%= @description.text %>
+      </p>
+
+      <%= render_slot(@inner_block) %>
+
+      <p
+        :if={@description && @description[:position] == :below}
+        class="text-sm text-gray-500 dark:text-gray-400 mb-1">
+          <%= @description.text %>
+      </p>
+    """
+  end
+
+  def fb_icon(assigns) do
+    dbg(assigns.icon)
+
+    ~H"""
+
+
+      <.icon
+      :if={@icon && @icon[:position] == :before}
+      name={@icon.name}
+      class="h-4 w-4 mr-1" />
+
+
+    <%= render_slot(@inner_block) %>
+
+    <span :if={@icon && @icon[:position] == :after}>
+      <.icon name={@icon.name} class="h-4 w-4"  />
+    </span>
+
+    """
+  end
+
+  @doc """
+  Retrieves the daisyUI class for a badge element based on the provided options.
+
+  ## Parameters
+  - `class`: A list of current classes associated with this column.
+  - `value`: The unformatted value of the column.
+  - `options`: A map containing options for customizing the badge or nil if no badge is specified.
+  - `assigns`: Assigns associated with the column used when one of the options is a function.
+
+  ## Returns
+  - Returns the original list of classes associated with the column and any additional classes for displaying a badge.
+
+  ## Specification
+  This function accepts the following `options`
+  -  'colours'
+  - 'outline'
+
+  ## Examples
+  ```elixir
+  get_badge(
+    [],
+    "Dog",
+    %{
+      colours: %{
+        "Dog" => "badge-neutral",
+        "Cat" => "badge-primary",
+        "Rabbit" => "badge-secondary"
+      },
+      outline: true
+    },
+    %{}
+  )
+  # => ["badge", "badge-neutral", "badge", "badge-outline"]
+  """
+  def get_badge(class, _value, options, _assigns) when is_nil(options) do
+    class
+  end
+
+  def get_badge(class, value, options, assigns) when is_map(options) do
+    class
+    |> get_badge_colour(value, get_in(options, [:colours]), assigns)
+    |> get_badge_outline(value, get_in(options, [:outline]), assigns)
+  end
+
+  def get_badge_colour(class, _value, colours, _assigns) when is_nil(colours) do
+    class
+  end
+
+  def get_badge_colour(class, value, colours, _assigns) when is_map(colours) do
+    class ++ ["badge", colours[value]]
+  end
+
+  def get_badge_colour(class, _value, colours, assigns) when is_list(colours) do
+    class ++ [apply_function(colours, assigns)]
+  end
+
+  def get_badge_outline(class, _value, outline, _assigns) when is_nil(outline) do
+    class
+  end
+
+  def get_badge_outline(class, _value, outline, _assigns) when outline == true do
+    class ++ ["badge", "badge-outline"]
+  end
+
+  def get_badge_outline(class, _value, outline, assigns) when is_list(outline) do
+    class ++ [apply_function(outline, assigns)]
+  end
+
+  def get_description(description, _assigns) when is_nil(description) do
+    nil
+  end
+
+  def get_description(description, assigns) when is_map(description) do
+    %{
+      text: get_description_text(description[:text], assigns),
+      position: get_description_position(description[:position], assigns)
+    }
+  end
+
+  def get_description(description, assigns) when is_list(description) do
+    apply_function(description, assigns)
+  end
+
+  def get_description_text(text, _assigns) when is_binary(text) do
+    text
+  end
+
+  def get_description_text(text, assigns) when is_list(text) do
+    apply_function(text, assigns)
+  end
+
+  def get_description_position(position, _assigns) when is_atom(position) do
+    position
+  end
+
+  def get_description_position(position, assigns) when is_list(position) do
+    apply_function(position, assigns)
+  end
+
+  def get_icon(icon, _assigns) when is_nil(icon) do
+    nil
+  end
+
+  def get_icon(icon, assigns) when is_map(icon) do
+    %{
+      name: get_icon_name(icon[:name], assigns),
+      position: get_icon_position(icon[:position], assigns),
+      colour: get_icon_colour(icon[:colour], assigns)
+    }
+  end
+
+  def get_icon(icon, assigns) when is_list(icon) do
+    apply_function(icon, assigns)
+  end
+
+  def get_icon_name(name, _assigns) when is_binary(name) do
+    name
+  end
+
+  def get_icon_name(name, assigns) when is_list(name) do
+    apply_function(name, assigns)
+  end
+
+  def get_icon_position(position, _assigns) when is_atom(position) do
+    position
+  end
+
+  def get_icon_position(position, assigns) when is_list(position) do
+    apply_function(position, assigns)
+  end
+
+  def get_icon_colour(colour, _assigns) when is_nil(colour) do
+    nil
+  end
+
+  def get_icon_colour(colour, _assigns) when is_binary(colour) do
+    colour
+  end
+
+  def get_icon_colour(colour, assigns) when is_list(colour) do
+    apply_function(colour, assigns)
+  end
+
+  def format_money(value, money, _assigns) when is_nil(money) do
+    value
+  end
+
+  def format_money(value, money, assigns) when is_map(money) do
+    value
+    |> format_divide_by(get_in(money, [:divide_by]), assigns)
+    |> Decimal.to_string()
+    |> format_currency(get_in(money, [:currency]), assigns)
+  end
+
+  def format_currency(value, currency, _assigns) when is_nil(currency) do
+    value
+  end
+
+  def format_currency(value, currency, _assigns) when is_binary(currency) do
+    currency <> value
+  end
+
+  def format_divide_by(value, divisor, _assigns) when is_nil(divisor) do
+    value
+  end
+
+  def format_divide_by(value, divisor, _assigns) when is_number(divisor) do
+    Decimal.div(value, Decimal.new(divisor)) |> Decimal.round(2)
+  end
+
+  def format_date(value, date_format, _assigns) when is_nil(date_format) do
+    value
+  end
+
+  def format_date(value, date_format, _assigns) when is_binary(date_format) do
+    {:ok, value} = Timex.format(value, date_format, :strftime)
+    value
+  end
+
   def get_columns_metadata(columns, schema) do
     # Return the default column_type for the field
 
