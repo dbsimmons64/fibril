@@ -131,23 +131,20 @@ defmodule Fibril.Table do
   end
 
   def fb_icon(assigns) do
-    dbg(assigns.icon)
-
     ~H"""
+      <.icon
+        :if={@icon && @icon[:position] == :before}
+        name={@icon.name}
+        class="h-4 w-4 mr-1"
+      />
 
+      <%= render_slot(@inner_block) %>
 
       <.icon
-      :if={@icon && @icon[:position] == :before}
-      name={@icon.name}
-      class="h-4 w-4 mr-1" />
-
-
-    <%= render_slot(@inner_block) %>
-
-    <span :if={@icon && @icon[:position] == :after}>
-      <.icon name={@icon.name} class="h-4 w-4"  />
-    </span>
-
+        :if={@icon && @icon[:position] == :after}
+        name={@icon.name}
+        class={"h-4 w-4 ml-1 "<> (@icon.colour || "")}
+      />
     """
   end
 
@@ -254,6 +251,14 @@ defmodule Fibril.Table do
     nil
   end
 
+  def get_icon(icon, _assigns) when is_binary(icon) do
+    %{
+      name: icon,
+      position: :before,
+      colour: nil
+    }
+  end
+
   def get_icon(icon, assigns) when is_map(icon) do
     %{
       name: get_icon_name(icon[:name], assigns),
@@ -272,6 +277,10 @@ defmodule Fibril.Table do
 
   def get_icon_name(name, assigns) when is_list(name) do
     apply_function(name, assigns)
+  end
+
+  def get_icon_position(position, _assigns) when is_nil(position) do
+    :before
   end
 
   def get_icon_position(position, _assigns) when is_atom(position) do
