@@ -11,11 +11,10 @@ defmodule Fibril.Table do
     # decorate_text
 
     field = assigns.field
-    raw_value = Resource.fetch_data(assigns.record, field)
-    formatted_value = raw_value
+    assigns = assign(assigns, :raw_value, Resource.fetch_data(assigns.record, field))
 
     formatted_value =
-      formatted_value
+      assigns.raw_value
       |> format_text(field[:text], assigns)
       |> format_html(field[:html], assigns)
 
@@ -23,7 +22,7 @@ defmodule Fibril.Table do
 
     class =
       []
-      |> get_badge(raw_value, field[:badge], assigns)
+      |> get_badge(field[:badge], assigns)
       |> Enum.uniq()
 
     assigns =
@@ -273,37 +272,37 @@ defmodule Fibril.Table do
   )
   # => ["badge", "badge-neutral", "badge", "badge-outline"]
   """
-  def get_badge(class, _value, options, _assigns) when is_nil(options) do
+  def get_badge(class, options, _assigns) when is_nil(options) do
     class
   end
 
-  def get_badge(class, value, options, assigns) when is_map(options) do
+  def get_badge(class, options, assigns) when is_map(options) do
     class
-    |> get_badge_colour(value, get_in(options, [:colours]), assigns)
-    |> get_badge_outline(value, get_in(options, [:outline]), assigns)
+    |> get_badge_colour(get_in(options, [:colours]), assigns)
+    |> get_badge_outline(get_in(options, [:outline]), assigns)
   end
 
-  def get_badge_colour(class, _value, colours, _assigns) when is_nil(colours) do
+  def get_badge_colour(class, colours, _assigns) when is_nil(colours) do
     class
   end
 
-  def get_badge_colour(class, value, colours, _assigns) when is_map(colours) do
-    class ++ ["badge", colours[value]]
+  def get_badge_colour(class, colours, assigns) when is_map(colours) do
+    class ++ ["badge", colours[assigns.value]]
   end
 
-  def get_badge_colour(class, _value, colours, assigns) when is_list(colours) do
+  def get_badge_colour(class, colours, assigns) when is_list(colours) do
     class ++ [apply_function(colours, assigns)]
   end
 
-  def get_badge_outline(class, _value, outline, _assigns) when is_nil(outline) do
+  def get_badge_outline(class, outline, _assigns) when is_nil(outline) do
     class
   end
 
-  def get_badge_outline(class, _value, outline, _assigns) when outline == true do
+  def get_badge_outline(class, outline, _assigns) when outline == true do
     class ++ ["badge", "badge-outline"]
   end
 
-  def get_badge_outline(class, _value, outline, assigns) when is_list(outline) do
+  def get_badge_outline(class, outline, assigns) when is_list(outline) do
     class ++ [apply_function(outline, assigns)]
   end
 
