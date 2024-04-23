@@ -7,9 +7,6 @@ defmodule Fibril.Table do
   alias Phoenix.HTML
 
   def fibril_column(%{display_type: :text} = assigns) do
-    # format_text
-    # decorate_text
-
     field = assigns.field
     assigns = assign(assigns, :raw_value, Resource.fetch_data(assigns.record, field))
 
@@ -23,6 +20,7 @@ defmodule Fibril.Table do
     class =
       []
       |> get_badge(field[:badge], assigns)
+      |> get_colour(field[:colour], assigns)
       |> Enum.uniq()
 
     assigns =
@@ -304,6 +302,18 @@ defmodule Fibril.Table do
 
   def get_badge_outline(class, outline, assigns) when is_list(outline) do
     class ++ [apply_function(outline, assigns)]
+  end
+
+  def get_colour(class, colour, _assigns) when is_nil(colour) do
+    class
+  end
+
+  def get_colour(class, colour, _assigns) when is_binary(colour) do
+    class ++ [colour]
+  end
+
+  def get_colour(class, colour, assigns) when is_binary(colour) do
+    class ++ [apply_function(colour, assigns)]
   end
 
   def get_description(description, _assigns) when is_nil(description) do
