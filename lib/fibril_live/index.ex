@@ -1,4 +1,5 @@
 defmodule FibrilWeb.FibrilLive.Index do
+  alias Ecto.Changeset
   use FibrilWeb, :live_view
 
   alias Fibril.Resource
@@ -23,7 +24,6 @@ defmodule FibrilWeb.FibrilLive.Index do
      |> assign(:table_opts, table_opts)
      |> assign(:url_prefix, Schema.url_prefix())
      |> assign(resource: resource)
-     # |> assign(:fields, table_opts.fields)
      |> assign(:fields, columns)
      |> assign(:preloads, preloads)}
   end
@@ -72,9 +72,12 @@ defmodule FibrilWeb.FibrilLive.Index do
   end
 
   @impl true
-  def handle_info({FibrilWeb.FibrilLive.FormComponent, {:saved, _record}}, socket) do
-    #    {:noreply, stream_insert(socket, :records, record)}
+  def handle_info({FibrilWeb.FibrilLive.FormComponent, {:saved, record}}, socket) do
     {:noreply, socket}
+  end
+
+  def handle_info({_sender, {:saved, record}}, socket) do
+    {:noreply, stream_insert(socket, :records, record)}
   end
 
   @impl true
@@ -85,5 +88,41 @@ defmodule FibrilWeb.FibrilLive.Index do
     {:ok, _} = Schema.repo().delete(record)
 
     {:noreply, stream_delete(socket, :records, record)}
+  end
+
+  def handle_event("update", params, socket) do
+    resource = apply(socket.assigns.configuration, :resource, [])
+    record = Schema.repo().get!(resource.module, params["id"])
+
+    params = %{params["name"] => params["content"]}
+
+    case update_resource(socket, record, params) do
+      {:ok, resource} ->
+        send(self(), {__MODULE__, {:saved, resource}})
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        errors =
+          Changeset.traverse_errors(changeset, fn {msg, opts} ->
+            Regex.replace(~r"%{(\w+)}", msg, fn _, key ->
+              opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
+            end)
+          end)
+
+        {:reply, %{errors: errors}, socket}
+    end
+  end
+
+  def update_resource(socket, record, attrs \\ %{}) do
+    table = apply(socket.assigns.configuration, :table, [])
+    preloads = Schema.create_preloads(table.fields)
+
+    Resource.get_changeset(
+      socket.assigns.configuration,
+      record,
+      attrs
+    )
+    |> Schema.repo().update()
+    |> Fibril.Helpers.preload(preloads)
   end
 end

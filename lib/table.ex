@@ -44,6 +44,24 @@ defmodule Fibril.Table do
     """
   end
 
+  def fibril_column(%{display_type: :input} = assigns) do
+    field = assigns.field |> dbg()
+    name = get_name(field)
+
+    assigns =
+      assigns
+      |> assign(:name, get_name(field))
+      |> assign(:raw_value, Resource.fetch_data(assigns.record, field))
+
+    ~H"""
+    <input name={@name} type="text" label="Name" value={@raw_value} id={@name} phx-hook="Edit"
+    class="border  border-gray-300 w-full rounded-lg leading-9  pl-4 phx-no-feedback:border-gray-300 phx-no-feedback:focus:border-orange-400 phx-no-feedback:focus:border-2 phx-no-feedback:focus:outline-none phx-no-feedback:focus:border-orange-400 focus:outline-none focus:border-2 focus:border-orange-400"
+    data-id={@record.id}
+    />
+    <div></div>
+    """
+  end
+
   # Need to rework the :decimal column
   def fibril_column(%{display_type: display_type} = assigns)
       when display_type in [:decimal, :integer] do
@@ -236,12 +254,19 @@ defmodule Fibril.Table do
     text
   end
 
+  def get_name(name) when is_atom(name) do
+    name
+  end
+
+  def get_name(name) when is_map(name) do
+    name.name
+  end
+
   @doc """
   Retrieves the daisyUI class for a badge element based on the provided options.
 
   ## Parameters
   - `class`: A list of current classes associated with this column.
-  - `value`: The unformatted value of the column.
   - `options`: A map containing options for customizing the badge or nil if no badge is specified.
   - `assigns`: Assigns associated with the column used when one of the options is a function.
 
@@ -257,7 +282,6 @@ defmodule Fibril.Table do
   ```elixir
   get_badge(
     [],
-    "Dog",
     %{
       colours: %{
         "Dog" => "badge-neutral",
@@ -280,12 +304,41 @@ defmodule Fibril.Table do
     |> get_badge_outline(get_in(options, [:outline]), assigns)
   end
 
+  @doc """
+  Retrieves the daisyUI class for a badge colour based on the provided color options.
+
+  ## Parameters
+  - `class`: A list of current classes associated with this column.
+  - `colours`: The colours available for the badge.
+  - `assigns`: Assigns associated with the column.
+
+  ## Returns
+  - Returns the original list of classes associated with the column and any additional classes for the badge colour.
+
+  ## Specification
+  - `colours` can either be a map of column values to colour classes or a function.
+
+  ## Examples
+  ```elixir
+  get_badge_colour(
+    ["badge"],
+    %{
+      "Dog" => "badge-neutral",
+      "Cat" => "badge-primary",
+      "Rabbit" => "badge-secondary"
+    },
+    %{
+      raw_value: "Dog"
+    })
+  # => ["badge", "badge", "badge-neutral"]
+  """
+
   def get_badge_colour(class, colours, _assigns) when is_nil(colours) do
     class
   end
 
   def get_badge_colour(class, colours, assigns) when is_map(colours) do
-    class ++ ["badge", colours[assigns.value]]
+    class ++ ["badge", colours[assigns.raw_value]]
   end
 
   def get_badge_colour(class, colours, assigns) when is_list(colours) do
