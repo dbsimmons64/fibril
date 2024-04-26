@@ -53,9 +53,6 @@ defmodule FibrilWeb.FibrilLive.Index do
   end
 
   defp apply_action(socket, :index, params) do
-    # [func | args] = socket.assigns.table_opts[:foo]
-    # apply(func, args) |> dbg()
-
     page_size = get_in(socket.assigns, [:table_opts, :pagination, :page_size])
     params = Map.merge(%{"page_size" => page_size}, params)
 
