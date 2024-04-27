@@ -298,6 +298,10 @@ defmodule Fibril.Table do
     class
   end
 
+  def get_badge(class, options, _assigns) when is_boolean(options) do
+    if options, do: class ++ ["badge"], else: class
+  end
+
   def get_badge(class, options, assigns) when is_map(options) do
     class
     |> get_badge_colour(get_in(options, [:colours]), assigns)

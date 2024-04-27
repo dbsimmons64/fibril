@@ -509,7 +509,7 @@ defmodule Fibril.CoreComponents do
 
               </div>
             </td>
-            <td :if={@action != []} class="relative w-14 p-0">
+            <td :if={@action != []} class="relative  p-0">
 
 
                 <span

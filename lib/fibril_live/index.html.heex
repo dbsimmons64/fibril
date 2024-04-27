@@ -36,11 +36,19 @@
   
     />
   </:col>
+  
   <:action :let={{id, record}}>
+    <.link patch={~p"/admin/#{@resource.plural}/#{record.id}/edit"} class="m-2">
+     <.icon name="hero-pencil-square" class="h-4 w-4 " />
+      Edit
+    </.link>
+
     <.link
       phx-click={JS.push("delete", value: %{id: record.id}) |> hide("##{id}")}
       data-confirm="Are you sure?"
+      class="m-2"
     >
+      <.icon name="hero-trash" class="h-4 w-4" />
       Delete
     </.link>
   </:action>
