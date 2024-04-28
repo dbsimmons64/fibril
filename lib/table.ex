@@ -35,8 +35,8 @@ defmodule Fibril.Table do
     <.fb_description description={@description} >
 
         <span class={@class}>
-        <.fb_icon icon={@icon}>
-          <%= @value   %>
+          <.fb_icon icon={@icon}>
+            <%= @value   %>
           </.fb_icon>
         </span>
 
@@ -46,7 +46,6 @@ defmodule Fibril.Table do
 
   def fibril_column(%{display_type: :input} = assigns) do
     field = assigns.field |> dbg()
-    name = get_name(field)
 
     assigns =
       assigns
@@ -78,39 +77,67 @@ defmodule Fibril.Table do
       |> assign(:raw_value, raw_value)
 
     ~H"""
-
-
-
-
       <%= @value  %>
-
-
     """
   end
 
   def fibril_column(%{display_type: :date} = assigns) do
-    # badge_class = get_badge(assigns)
+    field = assigns.field
+    assigns = assign(assigns, :raw_value, Resource.fetch_data(assigns.record, field))
 
-    value =
-      Resource.fetch_data(assigns.record, assigns.field)
-      |> format_date(get_in(assigns.field, [:datetime]), assigns)
+    formatted_value =
+      assigns.raw_value
+      |> format_date(field[:datetime], assigns)
 
-    assigns = assign(assigns, :value, value)
+    assigns = assign(assigns, :value, formatted_value)
+
+    class =
+      []
+      |> get_badge(field[:badge], assigns)
+      |> get_colour(field[:colour], assigns)
+      |> Enum.uniq()
+
+    assigns =
+      assigns
+      |> assign(:class, class)
+      |> assign(:description, get_description(field[:description], assigns))
+      |> assign(:icon, get_icon(field[:icon], assigns))
 
     ~H"""
+    <.fb_description description={@description} >
 
-      <%= @value  %>
+      <span class={@class}>
+        <.fb_icon icon={@icon}>
+          <%= @value  %>
+        </.fb_icon>
+      </span>
 
+    </.fb_description>
     """
   end
 
   def fibril_column(%{display_type: :icon} = assigns) do
-    column_value = Resource.fetch_data(assigns.record, assigns.field)
-    assigns = assign(assigns, :icon, assigns.field.options[column_value])
+    field = assigns.field
+    assigns = assign(assigns, :raw_value, Resource.fetch_data(assigns.record, field))
+
+    assigns =
+      assigns
+      |> assign(:description, get_description(field[:description], assigns))
+      |> assign(:icon, get_icon(field[:icon], assigns))
 
     ~H"""
-    <.icon name={@icon} class="h-5 w-5" />
+      <.fb_description description={@description} >
+
+        <.icon
+          name={@icon.name}
+          class={"ml-1 "<> "h-#{@icon.size.width} w-#{@icon.size.height} #{@icon.colour}"}
+        />
+
+      </.fb_description>
     """
+  end
+
+  def fibril_column(%{display_type: :boolean} = _assigns) do
   end
 
   def fibril_column(%{display_type: :calculated} = assigns) do
@@ -308,56 +335,27 @@ defmodule Fibril.Table do
     |> get_badge_outline(get_in(options, [:outline]), assigns)
   end
 
-  @doc """
-  Retrieves the daisyUI class for a badge colour based on the provided color options.
-
-  ## Parameters
-  - `class`: A list of current classes associated with this column.
-  - `colours`: The colours available for the badge.
-  - `assigns`: Assigns associated with the column.
-
-  ## Returns
-  - Returns the original list of classes associated with the column and any additional classes for the badge colour.
-
-  ## Specification
-  - `colours` can either be a map of column values to colour classes or a function.
-
-  ## Examples
-  ```elixir
-  get_badge_colour(
-    ["badge"],
-    %{
-      "Dog" => "badge-neutral",
-      "Cat" => "badge-primary",
-      "Rabbit" => "badge-secondary"
-    },
-    %{
-      raw_value: "Dog"
-    })
-  # => ["badge", "badge", "badge-neutral"]
-  """
-
-  def get_badge_colour(class, colours, _assigns) when is_nil(colours) do
+  defp get_badge_colour(class, colours, _assigns) when is_nil(colours) do
     class
   end
 
-  def get_badge_colour(class, colours, assigns) when is_map(colours) do
+  defp get_badge_colour(class, colours, assigns) when is_map(colours) do
     class ++ ["badge", colours[assigns.raw_value]]
   end
 
-  def get_badge_colour(class, colours, assigns) when is_list(colours) do
+  defp get_badge_colour(class, colours, assigns) when is_list(colours) do
     class ++ [apply_function(colours, assigns)]
   end
 
-  def get_badge_outline(class, outline, _assigns) when is_nil(outline) do
+  defp get_badge_outline(class, outline, _assigns) when is_nil(outline) do
     class
   end
 
-  def get_badge_outline(class, outline, _assigns) when outline == true do
+  defp get_badge_outline(class, outline, _assigns) when outline == true do
     class ++ ["badge", "badge-outline"]
   end
 
-  def get_badge_outline(class, outline, assigns) when is_list(outline) do
+  defp get_badge_outline(class, outline, assigns) when is_list(outline) do
     class ++ [apply_function(outline, assigns)]
   end
 
@@ -378,6 +376,8 @@ defmodule Fibril.Table do
   end
 
   def get_description(description, assigns) when is_map(description) do
+    dbg(assigns)
+
     %{
       text: get_description_text(description[:text], assigns),
       position: get_description_position(description[:position], assigns)
@@ -412,7 +412,8 @@ defmodule Fibril.Table do
     %{
       name: icon,
       position: :before,
-      colour: nil
+      colour: nil,
+      size: %{width: 5, height: 5}
     }
   end
 
@@ -420,7 +421,8 @@ defmodule Fibril.Table do
     %{
       name: get_icon_name(icon[:name], assigns),
       position: get_icon_position(icon[:position], assigns),
-      colour: get_icon_colour(icon[:colour], assigns)
+      colour: get_icon_colour(icon[:colour], assigns),
+      size: get_icon_size(icon[:size], assigns)
     }
   end
 
@@ -430,6 +432,10 @@ defmodule Fibril.Table do
 
   def get_icon_name(name, _assigns) when is_binary(name) do
     name
+  end
+
+  def get_icon_name(name, assigns) when is_map(name) do
+    name[assigns.raw_value]
   end
 
   def get_icon_name(name, assigns) when is_list(name) do
@@ -458,6 +464,14 @@ defmodule Fibril.Table do
 
   def get_icon_colour(colour, assigns) when is_list(colour) do
     apply_function(colour, assigns)
+  end
+
+  def get_icon_size(size, _assigns) when is_nil(size) do
+    %{height: 5, width: 5}
+  end
+
+  def get_icon_size(size, _assigns) when is_map(size) do
+    size
   end
 
   def format_money(value, money, _assigns) when is_nil(money) do

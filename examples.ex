@@ -21,7 +21,11 @@ def table() do
         icon: %{
           name: 'heroicon-m-envelope',
           position: :after,
-          colour: "danger"
+          colour: "danger",
+          size: %{
+            height: 5,
+            width: 5
+          }
         },
 
         datetime: "%b %y",

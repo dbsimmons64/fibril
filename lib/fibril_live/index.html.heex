@@ -46,7 +46,7 @@
     <.link
       phx-click={JS.push("delete", value: %{id: record.id}) |> hide("##{id}")}
       data-confirm="Are you sure?"
-      class="m-2"
+      class="m-2 text-red-500"
     >
       <.icon name="hero-trash" class="h-4 w-4" />
       Delete

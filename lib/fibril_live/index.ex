@@ -69,7 +69,7 @@ defmodule FibrilWeb.FibrilLive.Index do
   end
 
   @impl true
-  def handle_info({FibrilWeb.FibrilLive.FormComponent, {:saved, record}}, socket) do
+  def handle_info({FibrilWeb.FibrilLive.FormComponent, {:saved, _record}}, socket) do
     {:noreply, socket}
   end
 
