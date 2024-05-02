@@ -29,8 +29,6 @@ defmodule Fibril.Table do
       |> assign(:description, get_description(field[:description], assigns))
       |> assign(:icon, get_icon(field[:icon], assigns))
 
-    # Not sure about using get_in - might be better to use Map..get or assign[:foo]
-
     ~H"""
     <.fb_description description={@description} >
 
@@ -44,20 +42,59 @@ defmodule Fibril.Table do
     """
   end
 
+  def fibril_column(%{display_type: :textarea} = assigns) do
+    field = assigns.field
+    assigns = assign(assigns, :raw_value, Resource.fetch_data(assigns.record, field))
+
+    formatted_value =
+      assigns.raw_value
+      |> format_text(field[:text], assigns)
+      |> format_html(field[:html], assigns)
+
+    assigns = assign(assigns, :value, formatted_value)
+
+    class =
+      []
+      |> limit_lines(field[:text], assigns)
+
+    ~H"""
+          <span class="whitespace-pre-line">
+            <%= @value   %>
+            </span>
+    """
+  end
+
   def fibril_column(%{display_type: :input} = assigns) do
-    field = assigns.field |> dbg()
+    field = assigns.field
+    assigns = assign(assigns, :raw_value, Resource.fetch_data(assigns.record, field))
 
     assigns =
       assigns
       |> assign(:name, get_name(field))
       |> assign(:raw_value, Resource.fetch_data(assigns.record, field))
 
+    class =
+      []
+      |> get_colour(field[:colour], assigns)
+      |> Enum.uniq()
+
+    assigns =
+      assigns
+      |> assign(:class, class)
+      |> assign(:description, get_description(field[:description], assigns))
+
     ~H"""
-    <input name={@name} type="text" label="Name" value={@raw_value} id={@name} phx-hook="Edit"
-    class="border  border-gray-300 w-full rounded-lg leading-9  pl-4 phx-no-feedback:border-gray-300 phx-no-feedback:focus:border-orange-400 phx-no-feedback:focus:border-2 phx-no-feedback:focus:outline-none phx-no-feedback:focus:border-orange-400 focus:outline-none focus:border-2 focus:border-orange-400"
-    data-id={@record.id}
-    />
-    <div></div>
+    <.fb_description description={@description} >
+
+
+        <input name={@name} type="text" label="Name" value={@raw_value} id={@name} phx-hook="Edit"
+          class="border  border-gray-300  rounded-lg leading-9  pl-4 phx-no-feedback:border-gray-300 phx-no-feedback:focus:border-orange-400 phx-no-feedback:focus:border-2 phx-no-feedback:focus:outline-none phx-no-feedback:focus:border-orange-400 focus:outline-none focus:border-2 focus:border-orange-400"
+          data-id={@record.id}
+        />
+        <div></div>
+
+
+    </.fb_description>
     """
   end
 
@@ -202,6 +239,12 @@ defmodule Fibril.Table do
     |> format_words(text_opts[:words], assigns)
     |> format_prefix(text_opts[:prefix], assigns)
     |> format_suffix(text_opts[:suffix], assigns)
+  end
+
+  def format_textarea(textarea, text_opts, assigns) do
+    textarea
+    |> format_limit(text_opts[:limit], assigns)
+    |> format_words(text_opts[:words], assigns)
   end
 
   def format_limit(text, limit, _assigns) when is_nil(limit) do

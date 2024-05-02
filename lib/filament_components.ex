@@ -10,6 +10,12 @@ defmodule Fibril.FibrilComponents do
     """
   end
 
+  def fibril_input(%{type: :textarea} = assigns) do
+    ~H"""
+    <.input field={@name} type="textarea" label={@label} />
+    """
+  end
+
   def fibril_input(%{type: :integer} = assigns) do
     ~H"""
     <.input field={@name} type="text" label={@label} class="badge" />

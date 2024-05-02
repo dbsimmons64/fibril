@@ -16,5 +16,5 @@ return it.
 10. [TODO] Make a form inside a modal optional, if false then display the form in a page.
 11. [TODO] Work out how to include tailwind classes from the library in phoenix app
 12. [TODO] All fields must be specified as maps (no longer accept atoms).
-13. [TODO] Consider renaming the library to Luminary
+13. [TODO] Consider renaming the library to Radiance Builder
 14. [TODO] Document program generated tailwind classes and how to get around the issue

@@ -70,7 +70,8 @@ defmodule Fibril.MixProject do
       "guides/tutorial/Configuring Fibril.md",
       "guides/tutorial/Add a resource to Fibril.md",
       "guides/tutorial/Addings Pets.md",
-      "guides/table_builder/table_types.md"
+      "guides/Table Builder/Table.md",
+      "guides/Table Builder/Columns.md"
     ]
   end
 
