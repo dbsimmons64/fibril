@@ -3,8 +3,25 @@ def table() do
     fields: [
       :name,
       :date_of_birth,
+
       %{
         name: :type,
+
+        text: %{
+          limit: 50,
+          words: 10,
+          prefix: "https//",
+          suffix: ".com",
+          html: true,
+          colour: "text-red-500"
+        },
+
+        description: %{
+          text: "This is a description",
+          position: :below,
+          colour: "text-red-500"
+        },
+
         badge: %{
           colours: %{
               "Dog" => "badge-neutral",
@@ -13,10 +30,7 @@ def table() do
             },
           outline: true
         },
-        description: %{
-          text: "This is a description",
-          position: :below
-        },
+
 
         icon: %{
           name: 'heroicon-m-envelope',
@@ -34,23 +48,14 @@ def table() do
           currency: "£",
           divide_by: 100
         },
-        text: %{
-          limit: 50,
-          words: 10,
-          prefix: "https//",
-          suffix: ".com",
-        },
-
-        wrap: true,
-        html: true,
-        markdown: true,
-        colour: 'danger',
-
-        size: :large,
-        weight: :bold,
-        font_family: :mono,
 
 
+
+        font: %{
+          size: :large,
+          weight: :bold,
+          font_family: :mono,
+        }
 
       },
       [:owner, :name],

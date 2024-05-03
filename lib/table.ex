@@ -7,60 +7,42 @@ defmodule Fibril.Table do
   alias Phoenix.HTML
 
   def fibril_column(%{display_type: :text} = assigns) do
-    field = assigns.field
-    assigns = assign(assigns, :raw_value, Resource.fetch_data(assigns.record, field))
-
-    formatted_value =
-      assigns.raw_value
-      |> format_text(field[:text], assigns)
-      |> format_html(field[:html], assigns)
-
-    assigns = assign(assigns, :value, formatted_value)
-
-    class =
-      []
-      |> get_badge(field[:badge], assigns)
-      |> get_colour(field[:colour], assigns)
-      |> Enum.uniq()
-
     assigns =
       assigns
-      |> assign(:class, class)
-      |> assign(:description, get_description(field[:description], assigns))
-      |> assign(:icon, get_icon(field[:icon], assigns))
+      |> assign(:text, get_text(assigns))
+      |> assign(:description, get_description(assigns.field[:description], assigns))
+      |> assign(:icon, get_icon(assigns.field[:icon], assigns))
 
     ~H"""
     <.fb_description description={@description} >
-
-        <span class={@class}>
           <.fb_icon icon={@icon}>
-            <%= @value   %>
+          <span class={@text.classes}>
+            <%= @text.value   %>
+            </span>
           </.fb_icon>
-        </span>
-
     </.fb_description>
     """
   end
 
   def fibril_column(%{display_type: :textarea} = assigns) do
-    field = assigns.field
-    assigns = assign(assigns, :raw_value, Resource.fetch_data(assigns.record, field))
+    # field = assigns.field
+    # assigns = assign(assigns, :raw_value, Resource.fetch_data(assigns.record, field))
 
-    formatted_value =
-      assigns.raw_value
-      |> format_text(field[:text], assigns)
-      |> format_html(field[:html], assigns)
+    # formatted_value =
+    #   assigns.raw_value
+    #   |> format_text(field[:text], assigns)
+    #   |> format_html(field[:html], assigns)
 
-    assigns = assign(assigns, :value, formatted_value)
+    # assigns = assign(assigns, :value, formatted_value)
 
-    class =
-      []
-      |> limit_lines(field[:text], assigns)
+    assigns =
+      assigns
+      |> assign(:textarea, get_textarea(assigns))
 
     ~H"""
-          <span class="whitespace-pre-line">
-            <%= @value   %>
-            </span>
+      <span class={@textarea.classes}>
+        <%= @textarea.value   %>
+      </span>
     """
   end
 
@@ -201,7 +183,7 @@ defmodule Fibril.Table do
 
       <p
         :if={@description && @description[:position] == :above}
-        class="text-sm text-gray-500 dark:text-gray-400 mb-1">
+        class={@description.classes} >
           <%= @description.text %>
       </p>
 
@@ -209,7 +191,7 @@ defmodule Fibril.Table do
 
       <p
         :if={@description && @description[:position] == :below}
-        class="text-sm text-gray-500 dark:text-gray-400 mb-1">
+        class={@description.classes}>
           <%= @description.text %>
       </p>
     """
@@ -220,7 +202,7 @@ defmodule Fibril.Table do
       <.icon
         :if={@icon && @icon[:position] == :before}
         name={@icon.name}
-        class="h-4 w-4 mr-1"
+        class={"h-4 w-4 ml-1 "<> (@icon.colour || "")}
       />
 
       <%= render_slot(@inner_block) %>
@@ -233,95 +215,159 @@ defmodule Fibril.Table do
     """
   end
 
-  def format_text(text, text_opts, assigns) do
-    text
-    |> format_limit(text_opts[:limit], assigns)
-    |> format_words(text_opts[:words], assigns)
-    |> format_prefix(text_opts[:prefix], assigns)
-    |> format_suffix(text_opts[:suffix], assigns)
+  def get_text(assigns) do
+    text = %{
+      value: Resource.fetch_data(assigns.record, assigns.field),
+      classes: [],
+      attrs: []
+    }
+
+    format_text(text, assigns.field[:text], assigns)
   end
 
-  def format_textarea(textarea, text_opts, assigns) do
+  def get_textarea(assigns) do
+    textarea = %{
+      value: Resource.fetch_data(assigns.record, assigns.field),
+      classes: ["whitespace-pre-line"],
+      attrs: []
+    }
+
+    format_textarea(textarea, assigns.field[:textarea], assigns)
+  end
+
+  def format_text(text, options, _assigns) when is_nil(options) do
+    text
+  end
+
+  def format_text(text, options, assigns) when is_map(options) do
+    text
+    |> get_colour(options[:colour], assigns)
+    |> format_limit(options[:limit], assigns)
+    |> format_words(options[:words], assigns)
+    |> format_prefix(options[:prefix], assigns)
+    |> format_suffix(options[:suffix], assigns)
+    |> format_html(options[:html], assigns)
+  end
+
+  def format_textarea(textarea, options, _assigns) when is_nil(options) do
     textarea
-    |> format_limit(text_opts[:limit], assigns)
-    |> format_words(text_opts[:words], assigns)
   end
 
-  def format_limit(text, limit, _assigns) when is_nil(limit) do
-    text
+  # def format_textarea(textarea, text_opts, assigns) do
+  #   textarea
+  #   |> format_limit(text_opts[:limit], assigns)
+  #   |> format_words(text_opts[:words], assigns)
+  # end
+
+  def format_textarea(textarea, options, assigns) when is_map(options) do
+    textarea
+    |> get_colour(options[:colour], assigns)
+    |> format_limit(options[:limit], assigns)
+    |> format_words(options[:words], assigns)
+    |> format_html(options[:html], assigns)
   end
 
-  def format_limit(text, limit, _assigns) when is_number(limit) do
-    String.slice(text, 0, limit) <> "..."
+  def get_description(options, _assigns) when is_nil(options) do
+    nil
   end
 
-  def format_limit(text, limit, assigns) when is_list(limit) do
+  def get_description(description, assigns) when is_list(description) do
+    apply_function(description, assigns)
+  end
+
+  def get_description(options, assigns) when is_map(options) do
+    description = %{
+      text: nil,
+      position: nil,
+      classes: ["text-sm", "text-gray-500", "dark:text-gray-400", "mb-1"],
+      attrs: []
+    }
+
+    get_description(description, options, assigns)
+  end
+
+  def get_description(description, options, assigns) do
+    description
+    |> get_text(options[:text], assigns)
+    |> get_position(options[:position], assigns)
+    |> get_colour(options[:colour], assigns)
+  end
+
+  def format_limit(field, limit, _assigns) when is_nil(limit) do
+    field
+  end
+
+  def format_limit(field, limit, _assigns) when is_number(limit) do
+    %{field | value: String.slice(field.value, 0, limit) <> "..."}
+  end
+
+  def format_limit(field, limit, assigns) when is_list(limit) do
     # Add formatted value to assigns so function can use it
 
-    assigns = assign(assigns, :formatted_value, text)
-    apply_function(limit, assigns)
+    assigns = assign(assigns, :formatted_value, field.value)
+    %{field | value: apply_function(limit, assigns)}
   end
 
-  def format_words(text, words, _assigns) when is_nil(words) do
-    text
+  def format_words(field, words, _assigns) when is_nil(words) do
+    field
   end
 
-  def format_words(text, words, _assigns) when is_number(words) do
-    text = String.split(text) |> Enum.take(words) |> Enum.join(" ")
-    text <> "..."
+  def format_words(field, words, _assigns) when is_number(words) do
+    text = String.split(field.value) |> Enum.take(words) |> Enum.join(" ")
+    %{field | value: text <> "..."}
   end
 
-  def format_words(text, words, assigns) when is_list(words) do
+  def format_words(field, words, assigns) when is_list(words) do
     # Add formatted value to assigns so function can use it
 
-    assigns = assign(assigns, :formatted_value, text)
-    apply_function(words, assigns)
+    assigns = assign(assigns, :formatted_value, field.value)
+    %{field | value: apply_function(words, assigns)}
   end
 
-  def format_prefix(text, prefix, _assigns) when is_nil(prefix) do
-    text
+  def format_prefix(field, prefix, _assigns) when is_nil(prefix) do
+    field
   end
 
-  def format_prefix(text, prefix, _assigns) when is_binary(prefix) do
-    prefix <> text
+  def format_prefix(field, prefix, _assigns) when is_binary(prefix) do
+    %{field | value: prefix <> field.value}
   end
 
-  def format_prefix(text, prefix, assigns) when is_list(prefix) do
+  def format_prefix(field, prefix, assigns) when is_list(prefix) do
     # Add formatted value to assigns so function can use it
 
-    assigns = assign(assigns, :formatted_value, text)
+    assigns = assign(assigns, :formatted_value, field.value)
     apply_function(prefix, assigns)
   end
 
-  def format_suffix(text, suffix, _assigns) when is_nil(suffix) do
-    text
+  def format_suffix(field, suffix, _assigns) when is_nil(suffix) do
+    field
   end
 
-  def format_suffix(text, suffix, _assigns) when is_binary(suffix) do
-    text <> suffix
+  def format_suffix(field, suffix, _assigns) when is_binary(suffix) do
+    %{field | value: field.value <> suffix}
   end
 
-  def format_suffix(text, suffix, assigns) when is_list(suffix) do
+  def format_suffix(field, suffix, assigns) when is_list(suffix) do
     # Add formatted value to assigns so function can use it
 
-    assigns = assign(assigns, :formatted_value, text)
-    apply_function(suffix, assigns)
+    assigns = assign(assigns, :formatted_value, field.value)
+    %{field | value: apply_function(suffix, assigns)}
   end
 
-  def format_html(text, _html = true, _assigns) do
+  def format_html(field, _html = true, _assigns) do
     # text |> HTML.html_escape() |> HTML.safe_to_string()
-    HTML.raw(text)
+    %{field | value: HTML.raw(field.value)}
   end
 
-  def format_html(text, html, assigns) when is_list(html) do
+  def format_html(field, html, assigns) when is_list(html) do
     # Add formatted value to assigns so function can use it
 
-    assigns = assign(assigns, :formatted_value, text)
-    apply_function(html, assigns)
+    assigns = assign(assigns, :formatted_value, field.value)
+    %{field | value: apply_function(html, assigns)}
   end
 
-  def format_html(text, _html, _assigns) do
-    text
+  def format_html(field, _html, _assigns) do
+    field
   end
 
   def get_name(name) when is_atom(name) do
@@ -364,86 +410,77 @@ defmodule Fibril.Table do
   )
   # => ["badge", "badge-neutral", "badge", "badge-outline"]
   """
-  def get_badge(class, options, _assigns) when is_nil(options) do
-    class
+  def get_badge(field, options, _assigns) when is_nil(options) do
+    field
   end
 
-  def get_badge(class, options, _assigns) when is_boolean(options) do
-    if options, do: class ++ ["badge"], else: class
+  def get_badge(field, options, _assigns) when is_boolean(options) do
+    %{
+      field
+      | classes:
+          if options do
+            field.classes ++ ["badge"]
+          else
+            field.classes
+          end
+    }
   end
 
-  def get_badge(class, options, assigns) when is_map(options) do
-    class
+  def get_badge(field, options, assigns) when is_map(options) do
+    field
     |> get_badge_colour(get_in(options, [:colours]), assigns)
     |> get_badge_outline(get_in(options, [:outline]), assigns)
   end
 
-  defp get_badge_colour(class, colours, _assigns) when is_nil(colours) do
-    class
+  defp get_badge_colour(field, colours, _assigns) when is_nil(colours) do
+    field
   end
 
-  defp get_badge_colour(class, colours, assigns) when is_map(colours) do
-    class ++ ["badge", colours[assigns.raw_value]]
+  defp get_badge_colour(field, colours, assigns) when is_map(colours) do
+    %{field | classes: field.classes ++ ["badge", colours[assigns.raw_value]]}
   end
 
-  defp get_badge_colour(class, colours, assigns) when is_list(colours) do
-    class ++ [apply_function(colours, assigns)]
+  defp get_badge_colour(field, colours, assigns) when is_list(colours) do
+    %{field | classes: field.classes ++ [apply_function(colours, assigns)]}
   end
 
-  defp get_badge_outline(class, outline, _assigns) when is_nil(outline) do
-    class
+  defp get_badge_outline(field, outline, _assigns) when is_nil(outline) do
+    field
   end
 
-  defp get_badge_outline(class, outline, _assigns) when outline == true do
-    class ++ ["badge", "badge-outline"]
+  defp get_badge_outline(field, outline, _assigns) when outline == true do
+    %{field | classes: field.classes ++ ["badge", "badge-outline"]}
   end
 
-  defp get_badge_outline(class, outline, assigns) when is_list(outline) do
-    class ++ [apply_function(outline, assigns)]
+  defp get_badge_outline(field, outline, assigns) when is_list(outline) do
+    %{field | classes: field.classes ++ [apply_function(outline, assigns)]}
   end
 
-  def get_colour(class, colour, _assigns) when is_nil(colour) do
-    class
+  def get_colour(field, colour, _assigns) when is_nil(colour) do
+    field
   end
 
-  def get_colour(class, colour, _assigns) when is_binary(colour) do
-    class ++ [colour]
+  def get_colour(field, colour, _assigns) when is_binary(colour) do
+    %{field | classes: field.classes ++ [colour]}
   end
 
-  def get_colour(class, colour, assigns) when is_binary(colour) do
-    class ++ [apply_function(colour, assigns)]
+  def get_colour(field, colour, assigns) when is_binary(colour) do
+    %{field | classes: field.classes ++ [apply_function(colour, assigns)]}
   end
 
-  def get_description(description, _assigns) when is_nil(description) do
-    nil
+  def get_text(field, text, _assigns) when is_binary(text) do
+    %{field | text: text}
   end
 
-  def get_description(description, assigns) when is_map(description) do
-    dbg(assigns)
-
-    %{
-      text: get_description_text(description[:text], assigns),
-      position: get_description_position(description[:position], assigns)
-    }
-  end
-
-  def get_description(description, assigns) when is_list(description) do
-    apply_function(description, assigns)
-  end
-
-  def get_description_text(text, _assigns) when is_binary(text) do
-    text
-  end
-
-  def get_description_text(text, assigns) when is_list(text) do
+  def get_text(_field, text, assigns) when is_list(text) do
     apply_function(text, assigns)
   end
 
-  def get_description_position(position, _assigns) when is_atom(position) do
-    position
+  def get_position(field, position, _assigns) when is_atom(position) do
+    %{field | position: position}
   end
 
-  def get_description_position(position, assigns) when is_list(position) do
+  def get_position(_field, position, assigns) when is_list(position) do
     apply_function(position, assigns)
   end
 
