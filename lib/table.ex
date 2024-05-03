@@ -25,16 +25,6 @@ defmodule Fibril.Table do
   end
 
   def fibril_column(%{display_type: :textarea} = assigns) do
-    # field = assigns.field
-    # assigns = assign(assigns, :raw_value, Resource.fetch_data(assigns.record, field))
-
-    # formatted_value =
-    #   assigns.raw_value
-    #   |> format_text(field[:text], assigns)
-    #   |> format_html(field[:html], assigns)
-
-    # assigns = assign(assigns, :value, formatted_value)
-
     assigns =
       assigns
       |> assign(:textarea, get_textarea(assigns))
@@ -43,6 +33,24 @@ defmodule Fibril.Table do
       <span class={@textarea.classes}>
         <%= @textarea.value   %>
       </span>
+    """
+  end
+
+  def fibril_column(%{display_type: :date} = assigns) do
+    assigns =
+      assigns
+      |> assign(:date, get_date(assigns))
+      |> assign(:description, get_description(assigns.field[:description], assigns))
+      |> assign(:icon, get_icon(assigns.field[:icon], assigns))
+
+    ~H"""
+    <.fb_description description={@description} >
+          <.fb_icon icon={@icon}>
+          <span class={@date.classes}>
+            <%= @date.value   %>
+            </span>
+          </.fb_icon>
+    </.fb_description>
     """
   end
 
@@ -97,41 +105,6 @@ defmodule Fibril.Table do
 
     ~H"""
       <%= @value  %>
-    """
-  end
-
-  def fibril_column(%{display_type: :date} = assigns) do
-    field = assigns.field
-    assigns = assign(assigns, :raw_value, Resource.fetch_data(assigns.record, field))
-
-    formatted_value =
-      assigns.raw_value
-      |> format_date(field[:datetime], assigns)
-
-    assigns = assign(assigns, :value, formatted_value)
-
-    class =
-      []
-      |> get_badge(field[:badge], assigns)
-      |> get_colour(field[:colour], assigns)
-      |> Enum.uniq()
-
-    assigns =
-      assigns
-      |> assign(:class, class)
-      |> assign(:description, get_description(field[:description], assigns))
-      |> assign(:icon, get_icon(field[:icon], assigns))
-
-    ~H"""
-    <.fb_description description={@description} >
-
-      <span class={@class}>
-        <.fb_icon icon={@icon}>
-          <%= @value  %>
-        </.fb_icon>
-      </span>
-
-    </.fb_description>
     """
   end
 
@@ -225,6 +198,16 @@ defmodule Fibril.Table do
     format_text(text, assigns.field[:text], assigns)
   end
 
+  def get_date(assigns) do
+    date = %{
+      value: Resource.fetch_data(assigns.record, assigns.field),
+      classes: [],
+      attrs: []
+    }
+
+    format_date(date, assigns.field[:date], assigns)
+  end
+
   def get_textarea(assigns) do
     textarea = %{
       value: Resource.fetch_data(assigns.record, assigns.field),
@@ -247,6 +230,16 @@ defmodule Fibril.Table do
     |> format_prefix(options[:prefix], assigns)
     |> format_suffix(options[:suffix], assigns)
     |> format_html(options[:html], assigns)
+  end
+
+  def format_date(date, options, _assigns) when is_nil(options) do
+    date
+  end
+
+  def format_date(date, options, assigns) when is_map(options) do
+    date
+    |> format_date(options[:format], assigns)
+    |> get_colour(options[:colour], assigns)
   end
 
   def format_textarea(textarea, options, _assigns) when is_nil(options) do
@@ -585,9 +578,9 @@ defmodule Fibril.Table do
     value
   end
 
-  def format_date(value, date_format, _assigns) when is_binary(date_format) do
-    {:ok, value} = Timex.format(value, date_format, :strftime)
-    value
+  def format_date(date, date_format, _assigns) when is_binary(date_format) do
+    {:ok, value} = Timex.format(date.value, date_format, :strftime)
+    %{date | value: value}
   end
 
   def get_columns_metadata(columns, schema) do
