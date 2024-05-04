@@ -55,35 +55,22 @@ defmodule Fibril.Table do
   end
 
   def fibril_column(%{display_type: :input} = assigns) do
-    field = assigns.field
-    assigns = assign(assigns, :raw_value, Resource.fetch_data(assigns.record, field))
-
     assigns =
       assigns
-      |> assign(:name, get_name(field))
-      |> assign(:raw_value, Resource.fetch_data(assigns.record, field))
-
-    class =
-      []
-      |> get_colour(field[:colour], assigns)
-      |> Enum.uniq()
-
-    assigns =
-      assigns
-      |> assign(:class, class)
-      |> assign(:description, get_description(field[:description], assigns))
+      |> assign(:name, get_name(assigns.field))
+      |> assign(:input, get_input(assigns))
+      |> assign(:description, get_description(assigns.field[:description], assigns))
+      |> assign(:icon, get_icon(assigns.field[:icon], assigns))
 
     ~H"""
     <.fb_description description={@description} >
-
-
-        <input name={@name} type="text" label="Name" value={@raw_value} id={@name} phx-hook="Edit"
-          class="border  border-gray-300  rounded-lg leading-9  pl-4 phx-no-feedback:border-gray-300 phx-no-feedback:focus:border-orange-400 phx-no-feedback:focus:border-2 phx-no-feedback:focus:outline-none phx-no-feedback:focus:border-orange-400 focus:outline-none focus:border-2 focus:border-orange-400"
+      <.fb_icon icon={@icon}>
+        <input name={@name} type="text" label="Name" value={@input.value} id={@name} phx-hook="Edit"
+          class={@input.classes}
           data-id={@record.id}
         />
         <div></div>
-
-
+      </.fb_icon>
     </.fb_description>
     """
   end
@@ -218,6 +205,30 @@ defmodule Fibril.Table do
     format_textarea(textarea, assigns.field[:textarea], assigns)
   end
 
+  def get_input(assigns) do
+    input = %{
+      value: Resource.fetch_data(assigns.record, assigns.field),
+      classes: [
+        "border",
+        "border-gray-300",
+        "rounded-lg",
+        "leading-9",
+        "pl-4",
+        "phx-no-feedback:border-gray-300",
+        "phx-no-feedback:focus:border-orange-400",
+        "phx-no-feedback:focus:border-2",
+        "phx-no-feedback:focus:outline-none",
+        "phx-no-feedback:focus:border-orange-400",
+        "focus:outline-none",
+        "focus:border-2",
+        "focus:border-orange-400"
+      ],
+      attrs: []
+    }
+
+    format_input(input, assigns.field[:input], assigns)
+  end
+
   def format_text(text, options, _assigns) when is_nil(options) do
     text
   end
@@ -232,8 +243,25 @@ defmodule Fibril.Table do
     |> format_html(options[:html], assigns)
   end
 
+  def format_textarea(textarea, options, _assigns) when is_nil(options) do
+    textarea
+  end
+
+  def format_textarea(textarea, options, assigns) when is_map(options) do
+    textarea
+    |> get_colour(options[:colour], assigns)
+    |> format_limit(options[:limit], assigns)
+    |> format_words(options[:words], assigns)
+    |> format_html(options[:html], assigns)
+  end
+
   def format_date(date, options, _assigns) when is_nil(options) do
     date
+  end
+
+  def format_date(date, date_format, _assigns) when is_binary(date_format) do
+    {:ok, value} = Timex.format(date.value, date_format, :strftime)
+    %{date | value: value}
   end
 
   def format_date(date, options, assigns) when is_map(options) do
@@ -242,22 +270,13 @@ defmodule Fibril.Table do
     |> get_colour(options[:colour], assigns)
   end
 
-  def format_textarea(textarea, options, _assigns) when is_nil(options) do
-    textarea
+  def format_input(input, options, _assigns) when is_nil(options) do
+    input
   end
 
-  # def format_textarea(textarea, text_opts, assigns) do
-  #   textarea
-  #   |> format_limit(text_opts[:limit], assigns)
-  #   |> format_words(text_opts[:words], assigns)
-  # end
-
-  def format_textarea(textarea, options, assigns) when is_map(options) do
-    textarea
+  def format_input(input, options, assigns) when is_map(options) do
+    input
     |> get_colour(options[:colour], assigns)
-    |> format_limit(options[:limit], assigns)
-    |> format_words(options[:words], assigns)
-    |> format_html(options[:html], assigns)
   end
 
   def get_description(options, _assigns) when is_nil(options) do
@@ -574,14 +593,9 @@ defmodule Fibril.Table do
     Decimal.div(value, Decimal.new(divisor)) |> Decimal.round(2)
   end
 
-  def format_date(value, date_format, _assigns) when is_nil(date_format) do
-    value
-  end
-
-  def format_date(date, date_format, _assigns) when is_binary(date_format) do
-    {:ok, value} = Timex.format(date.value, date_format, :strftime)
-    %{date | value: value}
-  end
+  # def format_date(value, date_format, _assigns) when is_nil(date_format) do
+  #   value
+  # end
 
   def get_columns_metadata(columns, schema) do
     # Return the default column_type for the field
