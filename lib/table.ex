@@ -11,7 +11,7 @@ defmodule Fibril.Table do
       assigns
       |> assign(:text, get_text(assigns))
       |> assign(:description, get_description(assigns.field[:description], assigns))
-      |> assign(:icon, get_icon(assigns.field[:icon], assigns))
+      |> assign(:icon, get_icon(assigns))
 
     ~H"""
     <.fb_description description={@description} >
@@ -41,7 +41,7 @@ defmodule Fibril.Table do
       assigns
       |> assign(:date, get_date(assigns))
       |> assign(:description, get_description(assigns.field[:description], assigns))
-      |> assign(:icon, get_icon(assigns.field[:icon], assigns))
+      |> assign(:icon, get_icon(assigns))
 
     ~H"""
     <.fb_description description={@description} >
@@ -60,7 +60,7 @@ defmodule Fibril.Table do
       |> assign(:name, get_name(assigns.field))
       |> assign(:input, get_input(assigns))
       |> assign(:description, get_description(assigns.field[:description], assigns))
-      |> assign(:icon, get_icon(assigns.field[:icon], assigns))
+      |> assign(:icon, get_icon(assigns))
 
     ~H"""
     <.fb_description description={@description} >
@@ -81,7 +81,7 @@ defmodule Fibril.Table do
       assigns
       |> assign(:money, get_money(assigns))
       |> assign(:description, get_description(assigns.field[:description], assigns))
-      |> assign(:icon, get_icon(assigns.field[:icon], assigns))
+      |> assign(:icon, get_icon(assigns))
 
     dbg(assigns.money)
 
@@ -98,20 +98,25 @@ defmodule Fibril.Table do
   end
 
   def fibril_column(%{display_type: :icon} = assigns) do
-    field = assigns.field
-    assigns = assign(assigns, :raw_value, Resource.fetch_data(assigns.record, field))
-
     assigns =
       assigns
-      |> assign(:description, get_description(field[:description], assigns))
-      |> assign(:icon, get_icon(field[:icon], assigns))
+      |> assign(:icon, get_icon(assigns))
+      |> assign(:description, get_description(assigns.field[:description], assigns))
+
+    # field = assigns.field
+    # assigns = assign(assigns, :raw_value, Resource.fetch_data(assigns.record, field))
+
+    # assigns =
+    #   assigns
+    #   |> assign(:description, get_description(field[:description], assigns))
+    #   |> assign(:icon, get_icon(field[:icon], assigns))
 
     ~H"""
       <.fb_description description={@description} >
 
         <.icon
-          name={@icon.name}
-          class={"ml-1 "<> "h-#{@icon.size.width} w-#{@icon.size.height} #{@icon.colour}"}
+          name={@icon.value}
+          class={@icon.classes}
         />
 
       </.fb_description>
@@ -160,19 +165,21 @@ defmodule Fibril.Table do
   end
 
   def fb_icon(assigns) do
+    dbg(assigns.icon)
+
     ~H"""
       <.icon
-        :if={@icon && @icon[:position] == :before}
-        name={@icon.name}
-        class={"h-4 w-4 ml-1 "<> (@icon.colour || "")}
+        :if={@icon[:value] && @icon[:position] == :before}
+        name={@icon.value}
+        class={["ml-1"] ++ @icon.classes}
       />
 
       <%= render_slot(@inner_block) %>
 
       <.icon
-        :if={@icon && @icon[:position] == :after}
-        name={@icon.name}
-        class={"h-4 w-4 ml-1 "<> (@icon.colour || "")}
+        :if={@icon[:value] && @icon[:position] == :after}
+        name={@icon.value}
+        class={["ml-1"] ++ @icon.classes}
       />
     """
   end
@@ -241,6 +248,17 @@ defmodule Fibril.Table do
     format_money(money, assigns.field[:money], assigns)
   end
 
+  def get_icon(assigns) do
+    icon = %{
+      value: nil,
+      classes: [],
+      attrs: [],
+      position: nil
+    }
+
+    format_icon(icon, assigns.field[:icon], assigns)
+  end
+
   def format_text(text, options, _assigns) when is_nil(options) do
     text
   end
@@ -302,6 +320,56 @@ defmodule Fibril.Table do
     money
     |> format_amount(options[:divide_by], assigns)
     |> get_currency_symbol(options[:currency], assigns)
+  end
+
+  def format_icon(icon, options, _assigns) when is_nil(options) do
+    icon
+  end
+
+  def format_icon(_icon, options, _assigns) when is_binary(options) do
+    %{
+      value: options,
+      classes: ["ml-1", "w-4", "h-4"],
+      attrs: []
+    }
+    |> dbg()
+  end
+
+  def format_icon(icon, options, assigns) when is_map(options) do
+    icon
+    |> get_icon_name(options[:name], assigns)
+    |> get_colour(options[:colour], assigns)
+    |> get_icon_size(options[:size], assigns)
+    |> get_icon_position(options[:position], assigns)
+  end
+
+  def get_icon_name(icon, name, assigns) when is_map(name) do
+    field_value = Resource.fetch_data(assigns.record, assigns.field) |> dbg()
+    %{icon | value: name[field_value]} |> dbg()
+  end
+
+  def get_icon_name(icon, name, _assigns) when is_binary(name) do
+    %{icon | value: name}
+  end
+
+  def get_icon_name(icon, name, assigns) when is_list(name) do
+    %{icon | value: apply_function(name, assigns)}
+  end
+
+  def get_icon_size(icon, size, _assigns) when is_nil(size) do
+    %{icon | classes: icon.classes ++ ["w-4", "h-4"]}
+  end
+
+  def get_icon_size(icon, size, _assigns) when is_map(size) do
+    %{icon | classes: icon.classes ++ [icon.size.width, icon.size.height]}
+  end
+
+  def get_icon_position(icon, position, _assigns) when is_nil(position) do
+    icon
+  end
+
+  def get_icon_position(icon, position, _assigns) when is_atom(position) do
+    %{icon | position: position}
   end
 
   def get_description(options, _assigns) when is_nil(options) do
@@ -531,7 +599,7 @@ defmodule Fibril.Table do
     %{field | classes: field.classes ++ [colour]}
   end
 
-  def get_colour(field, colour, assigns) when is_binary(colour) do
+  def get_colour(field, colour, assigns) when is_list(colour) do
     %{field | classes: field.classes ++ [apply_function(colour, assigns)]}
   end
 
@@ -564,62 +632,62 @@ defmodule Fibril.Table do
     }
   end
 
-  def get_icon(icon, assigns) when is_map(icon) do
-    %{
-      name: get_icon_name(icon[:name], assigns),
-      position: get_icon_position(icon[:position], assigns),
-      colour: get_icon_colour(icon[:colour], assigns),
-      size: get_icon_size(icon[:size], assigns)
-    }
-  end
+  # def get_icon(icon, assigns) when is_map(icon) do
+  #   %{
+  #     name: get_icon_name(icon[:name], assigns),
+  #     position: get_icon_position(icon[:position], assigns),
+  #     colour: get_icon_colour(icon[:colour], assigns),
+  #     size: get_icon_size(icon[:size], assigns)
+  #   }
+  # end
 
-  def get_icon(icon, assigns) when is_list(icon) do
-    apply_function(icon, assigns)
-  end
+  # def get_icon(icon, assigns) when is_list(icon) do
+  #   apply_function(icon, assigns)
+  # end
 
-  def get_icon_name(name, _assigns) when is_binary(name) do
-    name
-  end
+  # def get_icon_name(name, _assigns) when is_binary(name) do
+  #   name
+  # end
 
-  def get_icon_name(name, assigns) when is_map(name) do
-    name[assigns.raw_value]
-  end
+  # def get_icon_name(name, assigns) when is_map(name) do
+  #   name[assigns.raw_value]
+  # end
 
-  def get_icon_name(name, assigns) when is_list(name) do
-    apply_function(name, assigns)
-  end
+  # def get_icon_name(name, assigns) when is_list(name) do
+  #   apply_function(name, assigns)
+  # end
 
-  def get_icon_position(position, _assigns) when is_nil(position) do
-    :before
-  end
+  # def get_icon_position(position, _assigns) when is_nil(position) do
+  #   :before
+  # end
 
-  def get_icon_position(position, _assigns) when is_atom(position) do
-    position
-  end
+  # def get_icon_position(position, _assigns) when is_atom(position) do
+  #   position
+  # end
 
-  def get_icon_position(position, assigns) when is_list(position) do
-    apply_function(position, assigns)
-  end
+  # def get_icon_position(position, assigns) when is_list(position) do
+  #   apply_function(position, assigns)
+  # end
 
-  def get_icon_colour(colour, _assigns) when is_nil(colour) do
-    nil
-  end
+  # def get_icon_colour(colour, _assigns) when is_nil(colour) do
+  #   nil
+  # end
 
-  def get_icon_colour(colour, _assigns) when is_binary(colour) do
-    colour
-  end
+  # def get_icon_colour(colour, _assigns) when is_binary(colour) do
+  #   colour
+  # end
 
-  def get_icon_colour(colour, assigns) when is_list(colour) do
-    apply_function(colour, assigns)
-  end
+  # def get_icon_colour(colour, assigns) when is_list(colour) do
+  #   apply_function(colour, assigns)
+  # end
 
-  def get_icon_size(size, _assigns) when is_nil(size) do
-    %{height: 5, width: 5}
-  end
+  # def get_icon_size(size, _assigns) when is_nil(size) do
+  #   %{height: 5, width: 5}
+  # end
 
-  def get_icon_size(size, _assigns) when is_map(size) do
-    size
-  end
+  # def get_icon_size(size, _assigns) when is_map(size) do
+  #   size
+  # end
 
   def format_money(value, money, _assigns) when is_nil(money) do
     value
