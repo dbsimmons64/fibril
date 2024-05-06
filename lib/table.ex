@@ -76,22 +76,24 @@ defmodule Fibril.Table do
   end
 
   # Need to rework the :decimal column
-  def fibril_column(%{display_type: display_type} = assigns)
-      when display_type in [:decimal, :integer] do
-    raw_value = Resource.fetch_data(assigns.record, assigns.field)
-
-    formatted_value =
-      raw_value
-      |> format_money(get_in(assigns.field, [:money]), assigns)
-      |> format_date(get_in(assigns.field, [:datetime]), assigns)
-
+  def fibril_column(%{display_type: :money} = assigns) do
     assigns =
       assigns
-      |> assign(:value, formatted_value)
-      |> assign(:raw_value, raw_value)
+      |> assign(:money, get_money(assigns))
+      |> assign(:description, get_description(assigns.field[:description], assigns))
+      |> assign(:icon, get_icon(assigns.field[:icon], assigns))
+
+    dbg(assigns.money)
 
     ~H"""
-      <%= @value  %>
+    <.fb_description description={@description} >
+          <.fb_icon icon={@icon}>
+          <span class={@money.classes}>
+            <%= @money.value   %>
+            <% dbg(@money.value) %>
+            </span>
+          </.fb_icon>
+    </.fb_description>
     """
   end
 
@@ -229,6 +231,16 @@ defmodule Fibril.Table do
     format_input(input, assigns.field[:input], assigns)
   end
 
+  def get_money(assigns) do
+    money = %{
+      value: Resource.fetch_data(assigns.record, assigns.field),
+      classes: [],
+      attrs: []
+    }
+
+    format_money(money, assigns.field[:money], assigns)
+  end
+
   def format_text(text, options, _assigns) when is_nil(options) do
     text
   end
@@ -277,6 +289,19 @@ defmodule Fibril.Table do
   def format_input(input, options, assigns) when is_map(options) do
     input
     |> get_colour(options[:colour], assigns)
+  end
+
+  def format_money(money, options, _assigns) when is_nil(options) do
+    money
+  end
+
+  def format_money(money, options, assigns) when is_map(options) do
+    # N.B. Order matters here - need to finish any formatting before adding the
+    # currency symbol.
+
+    money
+    |> format_amount(options[:divide_by], assigns)
+    |> get_currency_symbol(options[:currency], assigns)
   end
 
   def get_description(options, _assigns) when is_nil(options) do
@@ -380,6 +405,36 @@ defmodule Fibril.Table do
 
   def format_html(field, _html, _assigns) do
     field
+  end
+
+  def get_currency_symbol(money, currency, _assigns) when is_nil(currency) do
+    money
+  end
+
+  def get_currency_symbol(money, currency, _assigns) when is_binary(currency) do
+    %{money | value: currency <> money.value} |> dbg()
+  end
+
+  def get_currency_symbol(money, currency, assigns) when is_list(currency) do
+    %{money | value: apply_function(currency, assigns)}
+  end
+
+  def format_amount(money, divide_by, _assigns) when is_nil(divide_by) do
+    money
+  end
+
+  def format_amount(money, divide_by, _assigns) when is_number(divide_by) do
+    dbg(money.value)
+    {:ok, value} = Decimal.cast(money.value)
+
+    %{
+      money
+      | value:
+          value
+          |> Decimal.div(divide_by)
+          |> Decimal.round(2)
+          |> Decimal.to_string()
+    }
   end
 
   def get_name(name) when is_atom(name) do
