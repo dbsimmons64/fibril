@@ -83,16 +83,53 @@ defmodule Fibril.Table do
       |> assign(:description, get_description(assigns.field[:description], assigns))
       |> assign(:icon, get_icon(assigns))
 
-    dbg(assigns.money)
-
     ~H"""
     <.fb_description description={@description} >
           <.fb_icon icon={@icon}>
           <span class={@money.classes}>
             <%= @money.value   %>
-            <% dbg(@money.value) %>
             </span>
           </.fb_icon>
+    </.fb_description>
+    """
+  end
+
+  def fibril_column(%{display_type: :toggle} = assigns) do
+    assigns =
+      assigns
+      |> assign(:name, get_name(assigns.field))
+      |> assign(:toggle, get_toggle(assigns))
+      |> assign(:description, get_description(assigns.field[:description], assigns))
+      |> assign(:icon, get_icon(assigns))
+
+    ~H"""
+    <.fb_description description={@description} >
+      <.fb_icon icon={@icon}>
+        <input name={@name} type="checkbox" class="toggle" checked={@toggle.value} id={@name} phx-hook="Toggle"
+          data-id={@record.id}
+        />
+        <div></div>
+      </.fb_icon>
+    </.fb_description>
+    """
+  end
+
+  def fibril_column(%{display_type: :checkbox} = assigns) do
+    assigns =
+      assigns
+      |> assign(:name, get_name(assigns.field))
+      |> assign(:checkbox, get_toggle(assigns))
+      |> assign(:description, get_description(assigns.field[:description], assigns))
+      |> assign(:icon, get_icon(assigns))
+
+    ~H"""
+    <.fb_description description={@description} >
+      <.fb_icon icon={@icon}>
+        <input name={@name} type="checkbox" class="checkbox checkbox-md" checked={@checkbox.value} id={@name} phx-hook="Toggle"
+          data-id={@record.id}
+        />
+        <div></div>
+      </.fb_icon>
     </.fb_description>
     """
   end
@@ -102,14 +139,6 @@ defmodule Fibril.Table do
       assigns
       |> assign(:icon, get_icon(assigns))
       |> assign(:description, get_description(assigns.field[:description], assigns))
-
-    # field = assigns.field
-    # assigns = assign(assigns, :raw_value, Resource.fetch_data(assigns.record, field))
-
-    # assigns =
-    #   assigns
-    #   |> assign(:description, get_description(field[:description], assigns))
-    #   |> assign(:icon, get_icon(field[:icon], assigns))
 
     ~H"""
       <.fb_description description={@description} >
@@ -165,8 +194,6 @@ defmodule Fibril.Table do
   end
 
   def fb_icon(assigns) do
-    dbg(assigns.icon)
-
     ~H"""
       <.icon
         :if={@icon[:value] && @icon[:position] == :before}
@@ -259,6 +286,14 @@ defmodule Fibril.Table do
     format_icon(icon, assigns.field[:icon], assigns)
   end
 
+  def get_toggle(assigns) do
+    %{
+      value: Resource.fetch_data(assigns.record, assigns.field),
+      classes: [],
+      attrs: []
+    }
+  end
+
   def format_text(text, options, _assigns) when is_nil(options) do
     text
   end
@@ -332,7 +367,6 @@ defmodule Fibril.Table do
       classes: ["ml-1", "w-4", "h-4"],
       attrs: []
     }
-    |> dbg()
   end
 
   def format_icon(icon, options, assigns) when is_map(options) do
@@ -344,8 +378,8 @@ defmodule Fibril.Table do
   end
 
   def get_icon_name(icon, name, assigns) when is_map(name) do
-    field_value = Resource.fetch_data(assigns.record, assigns.field) |> dbg()
-    %{icon | value: name[field_value]} |> dbg()
+    field_value = Resource.fetch_data(assigns.record, assigns.field)
+    %{icon | value: name[field_value]}
   end
 
   def get_icon_name(icon, name, _assigns) when is_binary(name) do
@@ -480,19 +514,28 @@ defmodule Fibril.Table do
   end
 
   def get_currency_symbol(money, currency, _assigns) when is_binary(currency) do
-    %{money | value: currency <> money.value} |> dbg()
+    %{money | value: currency <> possibly_convert_money(money.value)}
   end
 
   def get_currency_symbol(money, currency, assigns) when is_list(currency) do
     %{money | value: apply_function(currency, assigns)}
   end
 
+  def possibly_convert_money(value) when is_integer(value) do
+    Integer.to_string(value)
+  end
+
+  def possibly_convert_money(value) when is_binary(value) do
+    value
+  end
+
+  # Will need a possibly_convert_money for Decimal
+
   def format_amount(money, divide_by, _assigns) when is_nil(divide_by) do
     money
   end
 
   def format_amount(money, divide_by, _assigns) when is_number(divide_by) do
-    dbg(money.value)
     {:ok, value} = Decimal.cast(money.value)
 
     %{
@@ -619,102 +662,32 @@ defmodule Fibril.Table do
     apply_function(position, assigns)
   end
 
-  def get_icon(icon, _assigns) when is_nil(icon) do
-    nil
-  end
-
-  def get_icon(icon, _assigns) when is_binary(icon) do
-    %{
-      name: icon,
-      position: :before,
-      colour: nil,
-      size: %{width: 5, height: 5}
-    }
-  end
-
-  # def get_icon(icon, assigns) when is_map(icon) do
-  #   %{
-  #     name: get_icon_name(icon[:name], assigns),
-  #     position: get_icon_position(icon[:position], assigns),
-  #     colour: get_icon_colour(icon[:colour], assigns),
-  #     size: get_icon_size(icon[:size], assigns)
-  #   }
+  # def format_money(value, money, _assigns) when is_nil(money) do
+  #   value
   # end
 
-  # def get_icon(icon, assigns) when is_list(icon) do
-  #   apply_function(icon, assigns)
+  # def format_money(value, money, assigns) when is_map(money) do
+  #   value
+  #   |> format_divide_by(get_in(money, [:divide_by]), assigns)
+  #   |> Decimal.to_string()
+  #   |> format_currency(get_in(money, [:currency]), assigns)
   # end
 
-  # def get_icon_name(name, _assigns) when is_binary(name) do
-  #   name
+  # def format_currency(value, currency, _assigns) when is_nil(currency) do
+  #   value
   # end
 
-  # def get_icon_name(name, assigns) when is_map(name) do
-  #   name[assigns.raw_value]
+  # def format_currency(value, currency, _assigns) when is_binary(currency) do
+  #   currency <> value
   # end
 
-  # def get_icon_name(name, assigns) when is_list(name) do
-  #   apply_function(name, assigns)
+  # def format_divide_by(value, divisor, _assigns) when is_nil(divisor) do
+  #   value
   # end
 
-  # def get_icon_position(position, _assigns) when is_nil(position) do
-  #   :before
+  # def format_divide_by(value, divisor, _assigns) when is_number(divisor) do
+  #   Decimal.div(value, Decimal.new(divisor)) |> Decimal.round(2)
   # end
-
-  # def get_icon_position(position, _assigns) when is_atom(position) do
-  #   position
-  # end
-
-  # def get_icon_position(position, assigns) when is_list(position) do
-  #   apply_function(position, assigns)
-  # end
-
-  # def get_icon_colour(colour, _assigns) when is_nil(colour) do
-  #   nil
-  # end
-
-  # def get_icon_colour(colour, _assigns) when is_binary(colour) do
-  #   colour
-  # end
-
-  # def get_icon_colour(colour, assigns) when is_list(colour) do
-  #   apply_function(colour, assigns)
-  # end
-
-  # def get_icon_size(size, _assigns) when is_nil(size) do
-  #   %{height: 5, width: 5}
-  # end
-
-  # def get_icon_size(size, _assigns) when is_map(size) do
-  #   size
-  # end
-
-  def format_money(value, money, _assigns) when is_nil(money) do
-    value
-  end
-
-  def format_money(value, money, assigns) when is_map(money) do
-    value
-    |> format_divide_by(get_in(money, [:divide_by]), assigns)
-    |> Decimal.to_string()
-    |> format_currency(get_in(money, [:currency]), assigns)
-  end
-
-  def format_currency(value, currency, _assigns) when is_nil(currency) do
-    value
-  end
-
-  def format_currency(value, currency, _assigns) when is_binary(currency) do
-    currency <> value
-  end
-
-  def format_divide_by(value, divisor, _assigns) when is_nil(divisor) do
-    value
-  end
-
-  def format_divide_by(value, divisor, _assigns) when is_number(divisor) do
-    Decimal.div(value, Decimal.new(divisor)) |> Decimal.round(2)
-  end
 
   # def format_date(value, date_format, _assigns) when is_nil(date_format) do
   #   value

@@ -88,6 +88,7 @@ defmodule FibrilWeb.FibrilLive.Index do
   end
 
   def handle_event("update", params, socket) do
+    dbg(params)
     resource = apply(socket.assigns.configuration, :resource, [])
     record = Schema.repo().get!(resource.module, params["id"])
 

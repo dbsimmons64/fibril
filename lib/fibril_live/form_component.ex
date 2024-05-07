@@ -27,7 +27,7 @@ defmodule FibrilWeb.FibrilLive.FormComponent do
     resource = apply(assigns.configuration, :resource, [])
     form = apply(assigns.configuration, :form, [])
 
-    fields = Schema.get_metadata_for_fields(form.fields, resource.module) |> dbg()
+    fields = Schema.get_metadata_for_fields(form.fields, resource.module)
     changeset = Schema.get_changeset(resource.module, form[:changeset], record, %{})
 
     {:ok,

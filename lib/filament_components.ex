@@ -60,6 +60,12 @@ defmodule Fibril.FibrilComponents do
     """
   end
 
+  def fibril_input(%{type: :boolean} = assigns) do
+    ~H"""
+    <.input field={@name} type="checkbox"  class="checkbox" label={@label}/>
+    """
+  end
+
   def fb_header(assigns) do
     ~H"""
     <header class="fb-header navbar border-b-2 border-gray-200">
