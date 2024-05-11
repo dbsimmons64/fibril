@@ -167,6 +167,29 @@ defmodule Fibril.Table do
     """
   end
 
+  def fibril_column(%{display_type: :select} = assigns) do
+    assigns =
+      assigns
+      |> assign(:name, get_name(assigns.field))
+      |> assign(:select, get_select(assigns))
+      |> assign(:description, get_description(assigns.field[:description], assigns))
+
+    # TODO Add a label
+    ~H"""
+      <.fb_description description={@description} >
+      <select
+        id={@name}
+        name={@name}
+        class={@select.classes}
+        phx-hook="Edit"
+        data-id={@record.id}>
+        <%= Phoenix.HTML.Form.options_for_select(@select.options, @select.value) %>
+      </select>
+      <div></div>
+      </.fb_description>
+    """
+  end
+
   def apply_function(list, assigns) do
     [func | args] = list
 
@@ -294,6 +317,23 @@ defmodule Fibril.Table do
     }
   end
 
+  def get_select(assigns) do
+    select = %{
+      value: Resource.fetch_data(assigns.record, assigns.field),
+      options: nil,
+      classes: [
+        "select",
+        "select-bordered",
+        "select-sm",
+        "w-full",
+        "max-w-xs"
+      ],
+      attrs: []
+    }
+
+    format_select(select, assigns.field[:select], assigns)
+  end
+
   def format_text(text, options, _assigns) when is_nil(options) do
     text
   end
@@ -375,6 +415,11 @@ defmodule Fibril.Table do
     |> get_colour(options[:colour], assigns)
     |> get_icon_size(options[:size], assigns)
     |> get_icon_position(options[:position], assigns)
+  end
+
+  def format_select(select, options, assigns) do
+    select
+    |> get_options(options[:options], assigns)
   end
 
   def get_icon_name(icon, name, assigns) when is_map(name) do
@@ -546,6 +591,14 @@ defmodule Fibril.Table do
           |> Decimal.round(2)
           |> Decimal.to_string()
     }
+  end
+
+  def get_options(select, options, _assigns) when is_map(options) do
+    %{select | options: options}
+  end
+
+  def get_options(select, options, assigns) when is_list(options) do
+    %{select | options: apply_function(options, assigns)}
   end
 
   def get_name(name) when is_atom(name) do
